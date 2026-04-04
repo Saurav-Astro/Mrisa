@@ -333,23 +333,21 @@ export const EventsManagement = ({ showForm: externalShowForm, setShowForm: exte
                   )}
                 </div>
 
-                {/* Date */}
-                <div>
-                  <Label className="text-gray-300">Date *</Label>
-                  <Input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) =>
-                      setFormData({ ...formData, date: e.target.value })
-                    }
-                    disabled={isLoading}
-                    required
-                    className="mt-2 bg-[#1a1a2e]/50 border-blue-900/40 text-white"
-                  />
-                </div>
-
                 {/* Date and Time */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-300">Date *</Label>
+                    <Input
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) =>
+                        setFormData({ ...formData, date: e.target.value })
+                      }
+                      disabled={isLoading}
+                      required
+                      className="mt-2 bg-[#1a1a2e]/50 border-blue-900/40 text-white"
+                    />
+                  </div>
                   <div>
                     <Label className="text-gray-300">Time *</Label>
                     <Input
@@ -393,7 +391,7 @@ export const EventsManagement = ({ showForm: externalShowForm, setShowForm: exte
                         })
                       }
                       disabled={isLoading}
-                      className="mt-2 w-full px-3 py-2 bg-[#1a1a2e]/50 border border-blue-900/40 rounded-lg text-white"
+                      className="mt-2 w-full px-3 py-2 bg-[#1a1a2e]/80 border border-blue-900/40 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                     >
                       <option value="upcoming">Upcoming</option>
                       <option value="active">Active</option>
@@ -467,11 +465,14 @@ export const EventsManagement = ({ showForm: externalShowForm, setShowForm: exte
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="text-center py-12 bg-[#121224]/70 rounded-2xl border border-blue-900/40"
+              className="text-center py-16 bg-[#0d0d1a]/80 rounded-2xl border border-blue-900/40"
             >
-              <Calendar className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">
-                No events in this category yet. Create one to get started!
+              <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Calendar className="h-8 w-8 text-blue-400" />
+              </div>
+              <p className="text-white font-semibold text-lg mb-1">No events found</p>
+              <p className="text-gray-400 text-sm">
+                {activeTab === "all" ? "Create your first event to get started!" : `No ${activeTab} events yet.`}
               </p>
             </motion.div>
           ) : (

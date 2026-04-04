@@ -317,7 +317,7 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
                     }
                     disabled={isLoading}
                     required
-                    className="mt-2 w-full px-3 py-2 bg-[#1a1a2e]/50 border border-blue-900/40 rounded-lg text-white"
+                    className="mt-2 w-full px-3 py-2 bg-[#1a1a2e]/80 border border-blue-900/40 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                   >
                     <option value="">Select an event</option>
                     {events.map((event) => (
@@ -497,9 +497,12 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
 
             {/* Winners List */}
             {eventWinners.length === 0 ? (
-              <p className="text-gray-400 text-center py-6 sm:py-8 text-sm sm:text-base">
-                No winners added for this event yet
-              </p>
+              <div className="text-center py-8 bg-[#0d0d1a]/60 rounded-xl border border-blue-900/20">
+                <Trophy className="h-8 w-8 text-gray-600 mx-auto mb-2" />
+                <p className="text-gray-400 text-sm">
+                  No winners added for this event yet
+                </p>
+              </div>
             ) : (
               <div className="space-y-2 sm:space-y-3">
                 {eventWinners
@@ -577,11 +580,14 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-8 sm:py-12 bg-[#121224]/70 rounded-xl sm:rounded-2xl border border-blue-900/40"
+          className="text-center py-16 bg-[#0d0d1a]/80 rounded-2xl border border-blue-900/40"
         >
-          <Trophy className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-          <p className="text-gray-400">
-            No events found. Create an event first to add winners.
+          <div className="w-16 h-16 bg-yellow-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Trophy className="h-8 w-8 text-yellow-400" />
+          </div>
+          <p className="text-white font-semibold text-lg mb-1">No events found</p>
+          <p className="text-gray-400 text-sm">
+            Create an event first to add winners.
           </p>
         </motion.div>
       )}

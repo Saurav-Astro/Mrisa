@@ -1,36 +1,14 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Mail, Calendar, User, Settings, ArrowRight, Trophy } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  Mail, Calendar, User, Settings, ArrowRight, Trophy, Activity, Users, Star
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { Scene3D } from "@/components/Scene3D";
+import { AdminLayout } from "@/components/AdminLayout";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const { toast } = useToast();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    const { error } = await logout();
-    if (error) {
-      toast({
-        title: "Logout Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      setIsLoggingOut(false);
-    } else {
-      toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out.",
-      });
-      navigate("/");
-    }
-  };
+  const { user } = useAuth();
 
   const userEmail = user?.email || "User";
   const userInitial = user?.email?.[0].toUpperCase() || "U";
@@ -42,224 +20,149 @@ const Dashboard = () => {
       })
     : "Unknown";
 
-  const menuItems = [
-    { icon: User, label: "Profile", href: "#", color: "from-blue-500 to-cyan-500" },
-    { icon: Settings, label: "Settings", href: "#", color: "from-purple-500 to-pink-500" },
-    { icon: Mail, label: "Messages", href: "#", color: "from-green-500 to-emerald-500" },
+  const quickActions = [
+    {
+      icon: Calendar,
+      label: "Manage Events",
+      description: "Create, edit and manage events",
+      href: "/admin/events",
+      gradient: "from-blue-500/20 to-cyan-500/20",
+      border: "border-blue-500/30 hover:border-blue-400/60",
+      iconColor: "from-blue-500 to-cyan-500",
+      textColor: "text-blue-400",
+    },
+    {
+      icon: Trophy,
+      label: "Manage Winners",
+      description: "Add and update event winners",
+      href: "/admin/winners",
+      gradient: "from-yellow-500/20 to-amber-500/20",
+      border: "border-yellow-500/30 hover:border-yellow-400/60",
+      iconColor: "from-yellow-500 to-amber-500",
+      textColor: "text-yellow-400",
+    },
+    {
+      icon: User,
+      label: "Profile",
+      description: "View and edit your profile",
+      href: "#",
+      gradient: "from-purple-500/20 to-pink-500/20",
+      border: "border-purple-500/30 hover:border-purple-400/60",
+      iconColor: "from-purple-500 to-pink-500",
+      textColor: "text-purple-400",
+    },
+    {
+      icon: Settings,
+      label: "Settings",
+      description: "Configure account settings",
+      href: "#",
+      gradient: "from-emerald-500/20 to-teal-500/20",
+      border: "border-emerald-500/30 hover:border-emerald-400/60",
+      iconColor: "from-emerald-500 to-teal-500",
+      textColor: "text-emerald-400",
+    },
+  ];
+
+  const stats = [
+    { label: "Events Attended", value: "0", icon: Calendar, color: "from-blue-500 to-cyan-500", bg: "bg-blue-500/10" },
+    { label: "Achievements", value: "0", icon: Star, color: "from-yellow-500 to-amber-500", bg: "bg-yellow-500/10" },
+    { label: "Messages", value: "0", icon: Mail, color: "from-purple-500 to-pink-500", bg: "bg-purple-500/10" },
+    { label: "Certifications", value: "0", icon: Activity, color: "from-emerald-500 to-teal-500", bg: "bg-emerald-500/10" },
   ];
 
   return (
-    <div className="relative text-gray-200 min-h-screen">
-      <div className="fixed inset-0 z-0">
-        <Scene3D />
+    <AdminLayout title="Dashboard" subtitle="Welcome back to your MRISA admin panel">
+      {/* User Profile + Stats Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        {/* Profile Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-[#0d0d1a]/80 backdrop-blur-md rounded-2xl p-6 border border-blue-900/40 flex flex-col items-center text-center"
+        >
+          <motion.div
+            animate={{
+              boxShadow: [
+                "0 0 20px rgba(16, 185, 129, 0.25)",
+                "0 0 40px rgba(16, 185, 129, 0.45)",
+                "0 0 20px rgba(16, 185, 129, 0.25)",
+              ],
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center mb-4 text-3xl font-bold text-black"
+          >
+            {userInitial}
+          </motion.div>
+          <h2 className="text-xl font-bold text-white mb-1">{userEmail.split("@")[0]}</h2>
+          <p className="text-xs text-gray-400 mb-4 break-all">{userEmail}</p>
+          <div className="w-full bg-[#1a1a2e]/60 rounded-xl p-3 border border-blue-900/30">
+            <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Member Since</p>
+            <p className="text-white font-semibold text-sm">{createdAt}</p>
+          </div>
+          <div className="mt-3 w-full flex items-center gap-2 bg-emerald-500/10 rounded-xl p-3 border border-emerald-500/20">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+            <span className="text-emerald-400 text-xs font-semibold">Active Admin</span>
+          </div>
+        </motion.div>
+
+        {/* Stats Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="lg:col-span-2 grid grid-cols-2 gap-3 sm:gap-4"
+        >
+          {stats.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4, delay: 0.15 + i * 0.07 }}
+              className="bg-[#0d0d1a]/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-blue-900/40 hover:border-blue-700/60 transition-all duration-300 group"
+            >
+              <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                <stat.icon className="h-5 w-5 text-white opacity-90" />
+              </div>
+              <p className="text-gray-400 text-xs mb-1">{stat.label}</p>
+              <p className="text-3xl font-bold text-white">{stat.value}</p>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
-      <div className="relative z-10 min-h-screen py-6 sm:py-8 md:py-12 px-3 sm:px-4 md:px-6 lg:px-8">
-        <div className="container mx-auto max-w-6xl">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-12 gap-4"
-          >
-            <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2">
-                Welcome to Dashboard
-              </h1>
-              <p className="text-sm sm:text-base text-gray-400">Manage your MRISA account</p>
-            </div>
-            <Button
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold flex items-center gap-2 h-10 sm:h-11 px-4 sm:px-6 text-sm sm:text-base w-full sm:w-auto"
-            >
-              <LogOut className="h-4 sm:h-5 w-4 sm:w-5" />
-              {isLoggingOut ? "Logging out..." : "Logout"}
-            </Button>
-          </motion.div>
 
-          {/* Tab Navigation */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-8"
-          >
-            <Button
-              onClick={() => navigate("/admin/events")}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-black font-semibold flex items-center justify-center gap-2 h-10 sm:h-11 px-4 text-sm sm:text-base"
-            >
-              <Calendar className="h-4 sm:h-5 w-4 sm:w-5" />
-              Manage Events
-            </Button>
-            <Button
-              onClick={() => navigate("/admin/winners")}
-              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-semibold flex items-center justify-center gap-2 h-10 sm:h-11 px-4 text-sm sm:text-base"
-            >
-              <Trophy className="h-4 sm:h-5 w-4 sm:w-5" />
-              Manage Winners
-            </Button>
-          </motion.div>
-
-          {/* Overview Content */}
-          <motion.div
+      {/* Quick Actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <h3 className="text-lg font-bold text-white mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+          {quickActions.map((action, i) => (
+            <motion.button
+              key={action.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              className="space-y-8"
+              transition={{ duration: 0.4, delay: 0.25 + i * 0.08 }}
+              whileHover={{ y: -4, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => action.href !== "#" && navigate(action.href)}
+              className={`relative group text-left rounded-2xl border ${action.border} bg-gradient-to-br ${action.gradient} backdrop-blur-md p-5 transition-all duration-300 overflow-hidden`}
             >
-              {/* Main Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-                {/* User Profile Card */}
-                <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
-                  className="lg:col-span-1"
-                >
-                  <div className="bg-[#121224]/70 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-blue-900/40 h-full">
-                    <div className="flex flex-col items-center text-center">
-                      {/* Avatar */}
-                      <motion.div
-                        animate={{
-                          boxShadow: [
-                            "0 0 20px rgba(16, 185, 129, 0.3)",
-                            "0 0 40px rgba(16, 185, 129, 0.5)",
-                            "0 0 20px rgba(16, 185, 129, 0.3)",
-                          ],
-                        }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                        className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mb-4 sm:mb-6"
-                      >
-                        <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-black">
-                          {userInitial}
-                        </span>
-                      </motion.div>
-
-                      {/* User Info */}
-                      <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
-                        {userEmail.split("@")[0]}
-                      </h2>
-                      <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6 break-all">{userEmail}</p>
-
-                      {/* Stats */}
-                      <div className="w-full space-y-3 sm:space-y-4">
-                        <div className="bg-[#1a1a2e]/50 rounded-lg p-3 sm:p-4">
-                          <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">
-                            Member Since
-                          </p>
-                          <p className="text-white font-semibold text-sm sm:text-base">{createdAt}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Quick Actions */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  className="sm:col-span-2 lg:col-span-2"
-                >
-                  <div className="bg-[#121224]/70 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-blue-900/40 h-full">
-                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Quick Actions</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                      {menuItems.map((item, index) => (
-                        <motion.a
-                          key={item.label}
-                          href={item.href}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-                          whileHover={{ y: -5, scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="group relative overflow-hidden rounded-xl p-4 sm:p-6 bg-gradient-to-br from-[#1a1a2e] to-[#16213e] border border-blue-900/40 cursor-pointer transition-all duration-300"
-                        >
-                          <div
-                            className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
-                          />
-                          <div className="relative z-10">
-                            <div className={`inline-block p-2 sm:p-3 rounded-lg bg-gradient-to-br ${item.color} mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300`}>
-                              <item.icon className="h-5 sm:h-6 w-5 sm:w-6 text-white" />
-                            </div>
-                            <h4 className="text-base sm:text-lg font-semibold text-white mb-1">
-                              {item.label}
-                            </h4>
-                            <p className="text-gray-400 text-xs sm:text-sm">
-                              Access your {item.label.toLowerCase()}
-                            </p>
-                            <ArrowRight className="h-3 sm:h-4 w-3 sm:w-4 text-gray-400 mt-3 sm:mt-4 group-hover:text-green-400 group-hover:translate-x-1 transition-all duration-300" />
-                          </div>
-                        </motion.a>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
+              {/* Hover shine */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br from-white/5 to-transparent transition-opacity duration-300 pointer-events-none" />
+              <div className={`inline-flex p-2.5 rounded-xl bg-gradient-to-br ${action.iconColor} mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                <action.icon className="h-5 w-5 text-white" />
               </div>
-
-              {/* Stats Section */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="bg-[#121224]/70 backdrop-blur-md rounded-2xl p-6 sm:p-8 border border-blue-900/40"
-              >
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Account Statistics</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  {[
-                    { label: "Events Attended", value: "0", icon: Calendar, color: "from-blue-500 to-cyan-500" },
-                    { label: "Achievements", value: "0", icon: User, color: "from-purple-500 to-pink-500" },
-                    { label: "Points Earned", value: "0", icon: Mail, color: "from-green-500 to-emerald-500" },
-                    { label: "Certifications", value: "0", icon: Settings, color: "from-orange-500 to-red-500" },
-                  ].map((stat, index) => (
-                    <motion.div
-                      key={stat.label}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                      className="bg-[#1a1a2e]/50 rounded-xl p-4 sm:p-6 group hover:bg-[#1a1a2e]/70 transition-all duration-300"
-                    >
-                      <div className="flex items-center justify-between mb-3 sm:mb-4">
-                        <div className={`p-2 sm:p-3 rounded-lg bg-gradient-to-br ${stat.color} group-hover:scale-110 transition-transform duration-300`}>
-                          <stat.icon className="h-4 sm:h-6 w-4 sm:w-6 text-white" />
-                        </div>
-                      </div>
-                      <p className="text-gray-400 text-xs sm:text-sm mb-1 sm:mb-2">{stat.label}</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-white">{stat.value}</p>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            </motion.div>
-
-          {/* Decorative Elements */}
-          <motion.div
-            animate={{
-              boxShadow: [
-                "0 0 40px rgba(16, 185, 129, 0.1)",
-                "0 0 80px rgba(16, 185, 129, 0.2)",
-                "0 0 40px rgba(16, 185, 129, 0.1)",
-              ],
-            }}
-            transition={{ duration: 4, repeat: Infinity }}
-            className="fixed bottom-10 left-10 w-40 h-40 bg-green-500/5 rounded-full blur-3xl pointer-events-none z-0"
-          />
-          <motion.div
-            animate={{
-              boxShadow: [
-                "0 0 60px rgba(59, 130, 246, 0.1)",
-                "0 0 100px rgba(59, 130, 246, 0.2)",
-                "0 0 60px rgba(59, 130, 246, 0.1)",
-              ],
-            }}
-            transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-            className="fixed top-20 right-10 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl pointer-events-none z-0"
-          />
+              <h4 className="text-base font-bold text-white mb-1">{action.label}</h4>
+              <p className="text-gray-400 text-xs leading-relaxed">{action.description}</p>
+              <ArrowRight className={`h-4 w-4 ${action.textColor} mt-3 group-hover:translate-x-1 transition-transform duration-300`} />
+            </motion.button>
+          ))}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </AdminLayout>
   );
 };
 
