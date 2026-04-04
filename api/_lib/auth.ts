@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { getMongoDb } from "./mongo";
+import { getMongoDb } from "./mongo.js";
 
 export interface AdminTokenPayload {
   email: string;

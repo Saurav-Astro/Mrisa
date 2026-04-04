@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "http";
 import { ObjectId } from "mongodb";
-import { getMongoDb } from "./_lib/mongo";
-import { getBearerToken, verifyAdminToken } from "./_lib/auth";
+import { getMongoDb } from "./_lib/mongo.js";
+import { getBearerToken, verifyAdminToken } from "./_lib/auth.js";
 
 interface WinnerDocument {
   _id: unknown;

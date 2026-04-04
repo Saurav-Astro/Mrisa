@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "http";
 import { ObjectId } from "mongodb";
-import { getMongoDb } from "./_lib/mongo";
+import { getMongoDb } from "./_lib/mongo.js";
 
 const sendJson = (res: ServerResponse, statusCode: number, data: unknown) => {
   res.statusCode = statusCode;

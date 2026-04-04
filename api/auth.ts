@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
-import { createAdminToken, findAdminUser, getBearerToken, validateAdminPassword, verifyAdminToken } from "./_lib/auth";
+import { createAdminToken, findAdminUser, getBearerToken, validateAdminPassword, verifyAdminToken } from "./_lib/auth.js";
 
 const sendJson = (res: ServerResponse, statusCode: number, data: unknown) => {
   res.statusCode = statusCode;
