@@ -107,6 +107,12 @@ export const findAdminUser = async (email: string) => {
 };
 
 export const validateAdminPassword = (password: string, passwordHash: string) => {
+  // Backward compatibility: some manual admin records were stored as plaintext.
+  // Accept them during transition so login does not fail unexpectedly.
+  if (!passwordHash.startsWith("pbkdf2$")) {
+    return password === passwordHash;
+  }
+
   const [scheme, digest, iterations, salt, storedKey] = passwordHash.split("$");
   if (scheme !== "pbkdf2" || !digest || !iterations || !salt || !storedKey) return false;
 
