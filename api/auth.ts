@@ -46,6 +46,27 @@ export default async function handler(req: IncomingMessage & { body?: unknown; h
         return sendJson(res, 400, { error: "Email and password are required" });
       }
 
+      // Allow login directly from configured bootstrap credentials.
+      // This protects against stale/duplicate admin records in the database.
+      const bootstrapEmail = String(process.env.ADMIN_BOOTSTRAP_EMAIL || process.env.ADMIN_EMAIL || "")
+        .toLowerCase()
+        .trim();
+      const bootstrapPassword = String(
+        process.env.ADMIN_BOOTSTRAP_PASSWORD || process.env.ADMIN_PASSWORD || ""
+      );
+
+      if (bootstrapEmail && bootstrapPassword && email === bootstrapEmail && password === bootstrapPassword) {
+        const token = createAdminToken(email);
+        const session = verifyAdminToken(token);
+
+        return sendJson(res, 200, {
+          email: session?.email || email,
+          created_at: session?.created_at || new Date().toISOString(),
+          expires_at: session?.expires_at || new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+          token,
+        });
+      }
+
       const user = await findAdminUser(email);
 
       if (!user || user.role !== "admin" || !validateAdminPassword(password, user.password_hash)) {
