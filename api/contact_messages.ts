@@ -1,5 +1,13 @@
 import type { IncomingMessage, ServerResponse } from "http";
 import { getMongoDb } from "./_lib/mongo.js";
+import {
+  applySecurityHeaders,
+  checkRateLimit,
+  readBodySecure,
+  sanitizeString,
+  sanitizeEmail,
+  sendInternalError,
+} from "./_lib/security.js";
 
 const sendJson = (res: ServerResponse, statusCode: number, data: unknown) => {
   res.statusCode = statusCode;
@@ -7,29 +15,27 @@ const sendJson = (res: ServerResponse, statusCode: number, data: unknown) => {
   res.end(JSON.stringify(data));
 };
 
-const readBody = async (req: IncomingMessage & { body?: unknown }) => {
-  if (req.body && typeof req.body === "object") return req.body as Record<string, unknown>;
-  if (typeof req.body === "string") return JSON.parse(req.body || "{}");
+export default async function handler(
+  req: IncomingMessage & { body?: unknown },
+  res: ServerResponse
+) {
+  applySecurityHeaders(res);
 
-  let raw = "";
-  for await (const chunk of req) {
-    raw += chunk;
-  }
-
-  return raw ? JSON.parse(raw) : {};
-};
-
-export default async function handler(req: IncomingMessage & { body?: unknown }, res: ServerResponse) {
   try {
     if (req.method !== "POST") {
       res.setHeader("Allow", ["POST"]);
       return sendJson(res, 405, { error: "Method not allowed" });
     }
 
-    const body = (await readBody(req)) as Record<string, unknown>;
-    const name = String(body.name || "").trim();
-    const email = String(body.email || "").trim();
-    const message = String(body.message || "").trim();
+    // Rate limit: 5 messages per IP per 10 minutes (prevents contact form spam)
+    if (!checkRateLimit(req, res, "POST:/api/contact_messages", { limit: 5, windowMs: 10 * 60 * 1000 })) return;
+
+    const body = await readBodySecure(req, res, 16 * 1024); // max 16 KB
+    if (!body) return;
+
+    const name = sanitizeString(body.name, 200);
+    const email = sanitizeEmail(body.email);
+    const message = sanitizeString(body.message, 5000);
 
     if (!name || !email || !message) {
       return sendJson(res, 400, { error: "Missing required contact fields" });
@@ -45,7 +51,6 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
 
     return sendJson(res, 201, { ok: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Contact request failed";
-    return sendJson(res, 500, { error: message });
+    sendInternalError(res, error, "contact_messages");
   }
 }

@@ -3,6 +3,14 @@ import { ObjectId } from "mongodb";
 import type { WithId } from "mongodb";
 import { getMongoDb } from "./_lib/mongo.js";
 import { getBearerToken, verifyAdminToken } from "./_lib/auth.js";
+import {
+  applySecurityHeaders,
+  checkRateLimit,
+  readBodySecure,
+  sanitizeString,
+  isValidObjectId,
+  sendInternalError,
+} from "./_lib/security.js";
 
 interface WinnerDocument {
   event_id: string;
@@ -21,18 +29,6 @@ const sendJson = (res: ServerResponse, statusCode: number, data: unknown) => {
   res.end(JSON.stringify(data));
 };
 
-const readBody = async (req: IncomingMessage & { body?: unknown }) => {
-  if (req.body && typeof req.body === "object") return req.body as Record<string, unknown>;
-  if (typeof req.body === "string") return JSON.parse(req.body || "{}");
-
-  let raw = "";
-  for await (const chunk of req) {
-    raw += chunk;
-  }
-
-  return raw ? JSON.parse(raw) : {};
-};
-
 const toWinner = (winner: WithId<WinnerDocument>) => ({
   id: String(winner._id),
   event_id: winner.event_id,
@@ -47,16 +43,25 @@ const toWinner = (winner: WithId<WinnerDocument>) => ({
 
 const requireAdmin = (req: IncomingMessage & { headers: Record<string, string | string[] | undefined> }) => {
   const token = getBearerToken(req.headers.authorization as string | undefined);
-  const session = verifyAdminToken(token);
-  return Boolean(session);
+  return Boolean(verifyAdminToken(token));
 };
 
-export default async function handler(req: IncomingMessage & { body?: unknown; query?: Record<string, string | string[]>; headers: Record<string, string | string[] | undefined> }, res: ServerResponse) {
+export default async function handler(
+  req: IncomingMessage & {
+    body?: unknown;
+    query?: Record<string, string | string[]>;
+    headers: Record<string, string | string[] | undefined>;
+  },
+  res: ServerResponse
+) {
+  applySecurityHeaders(res);
+
   try {
     const db = await getMongoDb();
     const winners = db.collection<WinnerDocument>("winners");
 
     if (req.method === "GET") {
+      if (!checkRateLimit(req, res, "GET:/api/winners", { limit: 120, windowMs: 60 * 1000 })) return;
       const items = await winners.find({}).sort({ rank: 1, created_at: -1 }).toArray();
       return sendJson(res, 200, items.map(toWinner));
     }
@@ -65,17 +70,20 @@ export default async function handler(req: IncomingMessage & { body?: unknown; q
       return sendJson(res, 401, { error: "Authentication required" });
     }
 
-    if (req.method === "POST") {
-      const body = (await readBody(req)) as Record<string, unknown>;
-      const now = new Date().toISOString();
+    if (!checkRateLimit(req, res, "ADMIN:/api/winners", { limit: 60, windowMs: 60 * 1000 })) return;
 
+    if (req.method === "POST") {
+      const body = await readBodySecure(req, res, 512 * 1024); // 512 KB
+      if (!body) return;
+
+      const now = new Date().toISOString();
       const payload = {
-        event_id: String(body.event_id || "").trim(),
-        player_name: String(body.player_name || "").trim(),
-        team_name: body.team_name ? String(body.team_name).trim() : null,
-        rank: Number(body.rank) || 0,
-        image_url: body.image_url ? String(body.image_url).trim() : null,
-        team_members: body.team_members ? String(body.team_members).trim() : null,
+        event_id: sanitizeString(body.event_id, 64),
+        player_name: sanitizeString(body.player_name, 200),
+        team_name: body.team_name ? sanitizeString(body.team_name, 200) : null,
+        rank: Number.isFinite(Number(body.rank)) ? Number(body.rank) : 0,
+        image_url: body.image_url ? sanitizeString(body.image_url, 2048) : null,
+        team_members: body.team_members ? sanitizeString(body.team_members, 2000) : null,
         created_at: now,
         updated_at: now,
       };
@@ -89,49 +97,39 @@ export default async function handler(req: IncomingMessage & { body?: unknown; q
     }
 
     if (req.method === "PUT") {
-      const body = (await readBody(req)) as Record<string, unknown>;
-      const id = String(body.id || "");
+      const body = await readBodySecure(req, res, 512 * 1024);
+      if (!body) return;
 
-      if (!id) {
-        return sendJson(res, 400, { error: "Missing winner id" });
-      }
+      const id = sanitizeString(body.id, 64);
+      if (!id || !isValidObjectId(id)) return sendJson(res, 400, { error: "Invalid winner ID" });
 
       const update = {
-        event_id: String(body.event_id || "").trim(),
-        player_name: String(body.player_name || "").trim(),
-        team_name: body.team_name ? String(body.team_name).trim() : null,
-        rank: Number(body.rank) || 0,
-        image_url: body.image_url ? String(body.image_url).trim() : null,
-        team_members: body.team_members ? String(body.team_members).trim() : null,
+        event_id: sanitizeString(body.event_id, 64),
+        player_name: sanitizeString(body.player_name, 200),
+        team_name: body.team_name ? sanitizeString(body.team_name, 200) : null,
+        rank: Number.isFinite(Number(body.rank)) ? Number(body.rank) : 0,
+        image_url: body.image_url ? sanitizeString(body.image_url, 2048) : null,
+        team_members: body.team_members ? sanitizeString(body.team_members, 2000) : null,
         updated_at: new Date().toISOString(),
       };
 
       const result = await winners.updateOne({ _id: new ObjectId(id) }, { $set: update });
-      if (!result.matchedCount) {
-        return sendJson(res, 404, { error: "Winner not found" });
-      }
-
+      if (!result.matchedCount) return sendJson(res, 404, { error: "Winner not found" });
       return sendJson(res, 200, { ok: true });
     }
 
     if (req.method === "DELETE") {
-      const id = String(req.query?.id || "");
-      if (!id) {
-        return sendJson(res, 400, { error: "Missing winner id" });
-      }
+      const id = sanitizeString(req.query?.id, 64);
+      if (!id || !isValidObjectId(id)) return sendJson(res, 400, { error: "Invalid winner ID" });
 
       const result = await winners.deleteOne({ _id: new ObjectId(id) });
-      if (!result.deletedCount) {
-        return sendJson(res, 404, { error: "Winner not found" });
-      }
-
+      if (!result.deletedCount) return sendJson(res, 404, { error: "Winner not found" });
       return sendJson(res, 200, { ok: true });
     }
 
     res.setHeader("Allow", ["GET", "POST", "PUT", "DELETE"]);
     return sendJson(res, 405, { error: "Method not allowed" });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Winners request failed";
-    return sendJson(res, 500, { error: message });
+    sendInternalError(res, error, "winners");
   }
 }

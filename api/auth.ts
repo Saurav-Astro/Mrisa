@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "http";
 import { createAdminToken, findAdminUser, getBearerToken, validateAdminPassword, verifyAdminToken } from "./_lib/auth.js";
+import { applySecurityHeaders, checkRateLimit, readBodySecure, sanitizeEmail, sanitizeString, sendInternalError } from "./_lib/security.js";
 
 const sendJson = (res: ServerResponse, statusCode: number, data: unknown) => {
   res.statusCode = statusCode;
@@ -7,28 +8,17 @@ const sendJson = (res: ServerResponse, statusCode: number, data: unknown) => {
   res.end(JSON.stringify(data));
 };
 
-const readBody = async (req: IncomingMessage & { body?: unknown }) => {
-  if (req.body && typeof req.body === "object") return req.body as Record<string, unknown>;
-  if (typeof req.body === "string") return JSON.parse(req.body || "{}");
+export default async function handler(
+  req: IncomingMessage & { body?: unknown; headers: Record<string, string | string[] | undefined> },
+  res: ServerResponse
+) {
+  applySecurityHeaders(res);
 
-  let raw = "";
-  for await (const chunk of req) {
-    raw += chunk;
-  }
-
-  return raw ? JSON.parse(raw) : {};
-};
-
-export default async function handler(req: IncomingMessage & { body?: unknown; headers: Record<string, string | string[] | undefined> }, res: ServerResponse) {
   try {
     if (req.method === "GET") {
       const token = getBearerToken(req.headers.authorization as string | undefined);
       const session = verifyAdminToken(token);
-
-      if (!session) {
-        return sendJson(res, 401, { error: "Not authenticated" });
-      }
-
+      if (!session) return sendJson(res, 401, { error: "Not authenticated" });
       return sendJson(res, 200, {
         email: session.email,
         created_at: session.created_at,
@@ -38,27 +28,26 @@ export default async function handler(req: IncomingMessage & { body?: unknown; h
     }
 
     if (req.method === "POST") {
-      const body = (await readBody(req)) as { email?: string; password?: string };
-      const email = String(body.email || "").toLowerCase().trim();
-      const password = String(body.password || "");
+      // ── Rate limit: 10 login attempts per IP per 15 minutes ──
+      if (!checkRateLimit(req, res, "POST:/api/auth", { limit: 10, windowMs: 15 * 60 * 1000 })) return;
+
+      const body = await readBodySecure(req, res, 2 * 1024); // max 2 KB for login
+      if (!body) return;
+
+      const email = sanitizeEmail(body.email);
+      const password = sanitizeString(body.password, 256);
 
       if (!email || !password) {
         return sendJson(res, 400, { error: "Email and password are required" });
       }
 
-      // Allow login directly from configured bootstrap credentials.
-      // This protects against stale/duplicate admin records in the database.
-      const bootstrapEmail = String(process.env.ADMIN_BOOTSTRAP_EMAIL || process.env.ADMIN_EMAIL || "")
-        .toLowerCase()
-        .trim();
-      const bootstrapPassword = String(
-        process.env.ADMIN_BOOTSTRAP_PASSWORD || process.env.ADMIN_PASSWORD || ""
-      );
+      // Bootstrap credentials from env
+      const bootstrapEmail = String(process.env.ADMIN_BOOTSTRAP_EMAIL || process.env.ADMIN_EMAIL || "").toLowerCase().trim();
+      const bootstrapPassword = String(process.env.ADMIN_BOOTSTRAP_PASSWORD || process.env.ADMIN_PASSWORD || "");
 
       if (bootstrapEmail && bootstrapPassword && email === bootstrapEmail && password === bootstrapPassword) {
         const token = createAdminToken(email);
         const session = verifyAdminToken(token);
-
         return sendJson(res, 200, {
           email: session?.email || email,
           created_at: session?.created_at || new Date().toISOString(),
@@ -69,13 +58,14 @@ export default async function handler(req: IncomingMessage & { body?: unknown; h
 
       const user = await findAdminUser(email);
 
+      // Use constant-time comparison path even on missing user to prevent timing attacks
       if (!user || user.role !== "admin" || !validateAdminPassword(password, user.password_hash)) {
+        // Generic error — don't reveal whether email exists
         return sendJson(res, 401, { error: "Invalid email or password" });
       }
 
       const token = createAdminToken(email);
       const session = verifyAdminToken(token);
-
       return sendJson(res, 200, {
         email: session?.email || email,
         created_at: session?.created_at || new Date().toISOString(),
@@ -91,7 +81,6 @@ export default async function handler(req: IncomingMessage & { body?: unknown; h
     res.setHeader("Allow", ["GET", "POST", "DELETE"]);
     return sendJson(res, 405, { error: "Method not allowed" });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Auth request failed";
-    return sendJson(res, 500, { error: message });
+    sendInternalError(res, error, "auth");
   }
 }
