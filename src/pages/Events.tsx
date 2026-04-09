@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { Calendar, Clock, Users, MapPin, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Scene3D } from "@/components/Scene3D";
+import ReactMarkdown from 'react-markdown';
 import { fetchEvents as fetchEventsApi, fetchRegistrationCount } from "@/lib/api";
 
 interface CTFEvent {
@@ -94,7 +95,7 @@ const EventCard = ({ event }: { event: CTFEvent }) => {
         {/* Title */}
         <h3 className="text-base sm:text-lg font-bold text-white line-clamp-2 mb-2 leading-tight">{event.title}</h3>
         {/* Description */}
-        <p className="text-gray-400 text-xs sm:text-sm mb-4 line-clamp-2 flex-1">{event.description}</p>
+        <div className="text-gray-400 text-xs sm:text-sm mb-4 line-clamp-2 flex-1 prose prose-invert prose-xs sm:prose-sm max-w-none"><ReactMarkdown>{event.description}</ReactMarkdown></div>
 
         {/* Meta info */}
         <div className="space-y-2 mb-4">
@@ -126,7 +127,7 @@ const EventCard = ({ event }: { event: CTFEvent }) => {
 
         {/* Action button */}
         <div style={{ transform: "translateZ(30px)" }}>
-          {/* Registration Closed — override everything */}
+          {/* Registration Closed â€” override everything */}
           {(event.registration_open === false) ? (
             <div className="w-full bg-gray-800/60 border border-gray-700/50 rounded-xl h-10 flex items-center justify-center gap-2 text-xs text-gray-500">
               <span className="w-2 h-2 rounded-full bg-red-500" />
@@ -144,7 +145,7 @@ const EventCard = ({ event }: { event: CTFEvent }) => {
             </Link>
           ) : event.status === "active" ? (
             <Button onClick={handleRegister} className="w-full bg-blue-500 text-white hover:bg-blue-400 h-9 sm:h-10 text-xs sm:text-sm font-bold animate-pulse">
-              Join Now — Live!
+              Join Now â€” Live!
             </Button>
           ) : null}
         </div>

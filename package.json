@@ -63,6 +63,7 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.4",
+    "react-markdown": "^10.1.0",
     "react-player": "^2.16.1",
     "react-resizable-panels": "^2.0.19",
     "react-router-dom": "^6.23.1",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Users, CreditCard, CheckCircle, Building2, GraduationCap, Calendar, Clock, MapPin, ArrowRight, ExternalLink } from "lucide-react";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { submitRegistration, fetchEvents, fetchRegistrationCount } from "@/lib/api";
 import { Scene3D } from "@/components/Scene3D";
+import ReactMarkdown from 'react-markdown';
 
 const DEFAULT_FORM_FIELDS = [
   { id: "name", label: "Name", type: "text", enabled: true, required: true, category: "Common" },
@@ -246,7 +247,7 @@ const RegisterPage = () => {
               <div>
                 <h2 className="text-white font-bold text-lg leading-tight">{event.title}</h2>
                 <span className="text-xs text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full">
-                  🔒 Registration Closed
+                  ðŸ”’ Registration Closed
                 </span>
               </div>
             </div>
@@ -270,7 +271,7 @@ const RegisterPage = () => {
             onClick={() => navigate("/events")}
             className="bg-gray-700 hover:bg-gray-600 text-gray-200 px-8 py-3"
           >
-            ← Back to Events
+            â† Back to Events
           </Button>
         </motion.div>
       </div>
@@ -336,7 +337,7 @@ const RegisterPage = () => {
 
                   {/* Info */}
                   <div className="p-6 sm:p-8">
-                    <p className="text-gray-400 text-sm sm:text-base mb-6 leading-relaxed">{event.description}</p>
+                    <div className="prose prose-invert prose-sm sm:prose-base max-w-none text-gray-400 mb-6 leading-relaxed"><ReactMarkdown>{event.description}</ReactMarkdown></div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
                       <div className="flex items-center gap-3 bg-[#1a1a2e]/50 px-4 py-3 rounded-xl border border-blue-900/20">
                         <Calendar className="w-5 h-5 text-green-400 flex-shrink-0" />
@@ -364,7 +365,7 @@ const RegisterPage = () => {
                     <div className="flex flex-wrap gap-2 mt-4">
                       {isTeam && (
                         <span className="bg-blue-900/20 px-3 py-1.5 rounded-full border border-blue-500/30 text-blue-400 flex items-center gap-1.5 text-xs">
-                          <Users className="w-3 h-3" /> Team ({numTeamMembers}–{maxTeamMembers} members)
+                          <Users className="w-3 h-3" /> Team ({numTeamMembers}â€“{maxTeamMembers} members)
                         </span>
                       )}
                       {event.registration_type === "paid" && (
@@ -549,10 +550,10 @@ const RegisterPage = () => {
                             <ExternalLink className="w-4 h-4" />
                             Pay Now
                           </a>
-                          <p className="text-xs text-gray-600 mt-1 font-mono break-all">{event.payment_link}</p>
+                          
                         </div>
                       )}
-                      {/* ── Transaction ID field ─────────────────────── */}
+                      {/* â”€â”€ Transaction ID field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                       <div className="mb-4">
                         <Label className="text-sm text-gray-300 flex items-center gap-1.5">
                           Reference / Transaction ID
@@ -578,15 +579,15 @@ const RegisterPage = () => {
                             }`}
                           />
                           {transactionId.trim() && !transactionIdError && (
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400 text-sm">✓</span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-400 text-sm">âœ“</span>
                           )}
                           {transactionIdError && (
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-400 text-sm">✗</span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-400 text-sm">âœ—</span>
                           )}
                         </div>
                         {transactionIdError ? (
                           <p className="text-red-400 text-xs mt-1.5 flex items-start gap-1.5">
-                            <span className="text-red-500 mt-0.5 flex-shrink-0">⚠</span>
+                            <span className="text-red-500 mt-0.5 flex-shrink-0">âš </span>
                             {transactionIdError}
                           </p>
                         ) : (
@@ -596,7 +597,7 @@ const RegisterPage = () => {
                         )}
                       </div>
 
-                      {/* ── Proof of Payment URL ─────────────────────── */}
+                      {/* â”€â”€ Proof of Payment URL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                       <div>
                         <Label className="text-sm text-gray-300">Proof of Payment URL <span className="text-red-500">*</span></Label>
                         <Input
@@ -633,3 +634,4 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
+
