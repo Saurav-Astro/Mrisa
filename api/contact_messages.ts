@@ -1,7 +1,5 @@
-import type { IncomingMessage, ServerResponse } from "http";
+﻿import type { IncomingMessage, ServerResponse } from "http";
 import { getMongoDb } from "./_lib/mongo.js";
-
-// ── Inline helpers (no security.ts dependency) ────────────────────────────────
 
 const sendJson = (res: ServerResponse, code: number, data: unknown) => {
   res.statusCode = code;
@@ -22,40 +20,20 @@ const readBody = async (req: IncomingMessage & { body?: unknown }): Promise<Reco
   try { return raw ? JSON.parse(raw) : {}; } catch { return {}; }
 };
 
-// ── Handler ───────────────────────────────────────────────────────────────────
-
-export default async function handler(
-  req: IncomingMessage & { body?: unknown },
-  res: ServerResponse
-) {
+export default async function handler(req: IncomingMessage & { body?: unknown }, res: ServerResponse) {
   try {
-    if (req.method !== "POST") {
-      res.setHeader("Allow", ["POST"]);
-      return sendJson(res, 405, { error: "Method not allowed" });
-    }
-
-    if (!process.env.MONGO_URI) {
-      return sendJson(res, 503, { error: "Server not configured." });
-    }
-
+    if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+    const db = await getMongoDb();
+    if (!db) return sendJson(res, 503, { error: "Service unavailable." });
     const body = await readBody(req);
     const name = sanitize(body.name, 200);
     const email = sanitize(body.email, 320);
     const message = sanitize(body.message, 5000);
-
-    if (!name || !email || !message) {
-      return sendJson(res, 400, { error: "Missing required contact fields" });
-    }
-
-    const db = await getMongoDb();
-    await db.collection("contact_messages").insertOne({
-      name, email, message,
-      created_at: new Date().toISOString(),
-    });
-
+    if (!name || !email || !message) return sendJson(res, 400, { error: "Missing fields" });
+    await db.collection("contact_messages").insertOne({ name, email, message, created_at: new Date().toISOString() });
     return sendJson(res, 201, { ok: true });
   } catch (err) {
-    console.error("[contact_messages] error:", err instanceof Error ? err.message : String(err));
-    if (!res.headersSent) sendJson(res, 500, { error: "An internal server error occurred." });
+    console.error("[contact] error:", err);
+    if (!res.headersSent) sendJson(res, 500, { error: "Internal error." });
   }
 }

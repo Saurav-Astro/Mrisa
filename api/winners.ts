@@ -1,10 +1,8 @@
-import type { IncomingMessage, ServerResponse } from "http";
+﻿import type { IncomingMessage, ServerResponse } from "http";
 import { ObjectId } from "mongodb";
 import type { WithId } from "mongodb";
 import { getMongoDb } from "./_lib/mongo.js";
 import { getBearerToken, verifyAdminToken } from "./_lib/auth.js";
-
-// ── Inline helpers (no security.ts dependency) ────────────────────────────────
 
 const sendJson = (res: ServerResponse, code: number, data: unknown) => {
   res.statusCode = code;
@@ -30,8 +28,6 @@ const readBody = async (req: IncomingMessage & { body?: unknown }): Promise<Reco
 const requireAdmin = (req: IncomingMessage & { headers: Record<string, string | string[] | undefined> }) =>
   Boolean(verifyAdminToken(getBearerToken(req.headers.authorization as string | undefined)));
 
-// ── Document shape ────────────────────────────────────────────────────────────
-
 interface WinnerDocument {
   event_id: string;
   player_name: string;
@@ -55,30 +51,21 @@ const toWinner = (w: WithId<WinnerDocument>) => ({
   updated_at: w.updated_at,
 });
 
-// ── Handler ───────────────────────────────────────────────────────────────────
-
 export default async function handler(
   req: IncomingMessage & { body?: unknown; query?: Record<string, string | string[]>; headers: Record<string, string | string[] | undefined> },
   res: ServerResponse
 ) {
   try {
-    if (!process.env.MONGO_URI) {
-      if (req.method === "GET") return sendJson(res, 200, []);
-      return sendJson(res, 503, { error: "Server not configured." });
-    }
-
     const db = await getMongoDb();
-    const collection = db.collection<WinnerDocument>("winners");
-
-    // ── GET (public) ──────────────────────────────────────────────────────
     if (req.method === "GET") {
+      if (!db) return sendJson(res, 200, []);
+      const collection = db.collection<WinnerDocument>("winners");
       const items = await collection.find({}).sort({ rank: 1, created_at: -1 }).toArray();
       return sendJson(res, 200, items.map(toWinner));
     }
-
-    // ── Admin only beyond here ────────────────────────────────────────────
     if (!requireAdmin(req)) return sendJson(res, 401, { error: "Authentication required" });
-
+    if (!db) return sendJson(res, 503, { error: "Database service unavailable." });
+    const collection = db.collection<WinnerDocument>("winners");
     if (req.method === "POST") {
       const body = await readBody(req);
       const now = new Date().toISOString();
@@ -97,7 +84,6 @@ export default async function handler(
       await collection.insertOne(payload);
       return sendJson(res, 201, { ok: true });
     }
-
     if (req.method === "PUT") {
       const body = await readBody(req);
       const id = sanitize(body.id, 64);
@@ -115,7 +101,6 @@ export default async function handler(
       if (!result.matchedCount) return sendJson(res, 404, { error: "Winner not found" });
       return sendJson(res, 200, { ok: true });
     }
-
     if (req.method === "DELETE") {
       const id = sanitize(req.query?.id, 64);
       if (!id || !isValidId(id)) return sendJson(res, 400, { error: "Invalid winner ID" });
@@ -123,7 +108,6 @@ export default async function handler(
       if (!result.deletedCount) return sendJson(res, 404, { error: "Winner not found" });
       return sendJson(res, 200, { ok: true });
     }
-
     res.setHeader("Allow", ["GET", "POST", "PUT", "DELETE"]);
     return sendJson(res, 405, { error: "Method not allowed" });
   } catch (err) {
