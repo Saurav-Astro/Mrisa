@@ -46,7 +46,7 @@ export default async function handler(req: IncomingMessage & { body?: unknown; q
       if (!id) return sendJson(res, 400, { error: "Missing registration id" });
       const result = await collection.deleteOne({ _id: new ObjectId(id) });
       if (!result.deletedCount) return sendJson(res, 404, { error: "Registration not found" });
-      return sendJson(res, 200, | ok: true });
+      return sendJson(res, 200, { ok: true });
     }
 
     if (req.method !== "POST") {

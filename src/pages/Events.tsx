@@ -1,15 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import { Calendar, Clock, Users, Trophy, ExternalLink, Shield } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Scene3D } from "@/components/Scene3D";
 import { fetchEvents as fetchEventsApi } from "@/lib/api";
-import { DynamicRegistrationModal } from "@/components/DynamicRegistrationModal";
 
 interface CTFEvent {
   id: string;
@@ -26,12 +22,10 @@ interface CTFEvent {
 
 const filterOptions: Array<CTFEvent["status"] | "all"> = ["all", "upcoming", "active", "past"];
 
-// Using Dynamic Registration Modal from components
-
 // 3D Interactive Event Card
 const EventCard = ({ event }: { event: CTFEvent }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -58,70 +52,64 @@ const EventCard = ({ event }: { event: CTFEvent }) => {
 
   const status = statusStyles[event.status] || statusStyles.past;
 
-  return (
-    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      <motion.div
-        ref={cardRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className={`relative bg-[#121224]/70 backdrop-blur-md rounded-lg sm:rounded-xl border ${status.color} transition-shadow duration-300 hover:shadow-2xl hover:shadow-green-500/10 overflow-hidden`}
-      >
-        {/* Event Image */}
-        <div className="relative h-24 sm:h-32 overflow-hidden bg-[#0a0a14]">
-          <img
-            src={event.image_url || "/default_image/meisa_default.jpeg"}
-            alt={event.title}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = "/default_image/meisa_default.jpeg";
-            }}
-          />
-        </div>
+  const handleRegister = () => {
+    if (event.registration_link) {
+      window.open(event.registration_link, "_blank");
+    } else {
+      // Open registration in a new tab
+      window.open(`/register/${event.id}`, "_blank");
+    }
+  };
 
-        <div style={{ transform: "translateZ(20px)" }} className="p-4 sm:p-6">
-          <div className="flex justify-between items-start gap-2 mb-3 sm:mb-4">
-            <h3 className="text-base sm:text-lg md:text-xl font-sans font-bold text-white line-clamp-2">{event.title}</h3>
-            <span className={`px-2 sm:px-3 py-1 text-xs font-mono uppercase rounded-full bg-black/30 whitespace-nowrap flex-shrink-0`}>
-              {event.status}
-            </span>
-          </div>
-          <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6 line-clamp-2 sm:line-clamp-3">{event.description}</p>
-          <div className="flex flex-col gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6">
-            <span className="flex items-center"><Calendar className="h-3 sm:h-4 w-3 sm:w-4 mr-2 flex-shrink-0" />{new Date(event.date).toLocaleDateString()}</span>
-            <span className="flex items-center"><Clock className="h-3 sm:h-4 w-3 sm:w-4 mr-2 flex-shrink-0" />{event.time}</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6">
-            <Users className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0" />
-            <span className="line-clamp-1">{event.location} • {event.attendees} attendees</span>
-          </div>
-          <div style={{ transform: "translateZ(30px)" }} className="space-y-2">
-            {event.status === "upcoming" ? (
-              event.registration_link ? (
-                <a href={event.registration_link} target="_blank" rel="noopener noreferrer" className="block">
-                  <Button className="w-full bg-green-500 text-black hover:bg-green-400 h-9 sm:h-10 text-xs sm:text-sm">Register Now</Button>
-                </a>
-              ) : (
-                <Button onClick={() => setIsModalOpen(true)} className="w-full bg-green-500 text-black hover:bg-green-400 h-9 sm:h-10 text-xs sm:text-sm">Register Now</Button>
-              )
-            ) : event.status === "past" ? (
-              <Link to="/winners" className="block">
-                <Button className="w-full bg-blue-500 text-white hover:bg-blue-400 border-blue-900/40 h-9 sm:h-10 text-xs sm:text-sm">View Results</Button>
-              </Link>
-            ) : event.status === "active" ? (
-              event.registration_link ? (
-                <a href={event.registration_link} target="_blank" rel="noopener noreferrer" className="block">
-                  <Button className="w-full bg-blue-500 text-white hover:bg-blue-400 h-9 sm:h-10 text-xs sm:text-sm">Join Now</Button>
-                </a>
-              ) : (
-                <Button onClick={() => setIsModalOpen(true)} className="w-full bg-blue-500 text-white hover:bg-blue-400 h-9 sm:h-10 text-xs sm:text-sm">Join Now</Button>
-              )
-            ) : null}
-          </div>
+  return (
+    <motion.div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      className={`relative bg-[#121224]/70 backdrop-blur-md rounded-lg sm:rounded-xl border ${status.color} transition-shadow duration-300 hover:shadow-2xl hover:shadow-green-500/10 overflow-hidden`}
+    >
+      {/* Event Image */}
+      <div className="relative h-24 sm:h-32 overflow-hidden bg-[#0a0a14]">
+        <img
+          src={event.image_url || "/default_image/meisa_default.jpeg"}
+          alt={event.title}
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "/default_image/meisa_default.jpeg";
+          }}
+        />
+      </div>
+
+      <div style={{ transform: "translateZ(20px)" }} className="p-4 sm:p-6">
+        <div className="flex justify-between items-start gap-2 mb-3 sm:mb-4">
+          <h3 className="text-base sm:text-lg md:text-xl font-sans font-bold text-white line-clamp-2">{event.title}</h3>
+          <span className={`px-2 sm:px-3 py-1 text-xs font-mono uppercase rounded-full bg-black/30 whitespace-nowrap flex-shrink-0`}>
+            {event.status}
+          </span>
         </div>
-      </motion.div>
-      {isModalOpen && <DynamicRegistrationModal event={event} onClose={() => setIsModalOpen(false)} />}
-    </Dialog>
+        <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6 line-clamp-2 sm:line-clamp-3">{event.description}</p>
+        <div className="flex flex-col gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6">
+          <span className="flex items-center"><Calendar className="h-3 sm:h-4 w-3 sm:w-4 mr-2 flex-shrink-0" />{new Date(event.date).toLocaleDateString()}</span>
+          <span className="flex items-center"><Clock className="h-3 sm:h-4 w-3 sm:w-4 mr-2 flex-shrink-0" />{event.time}</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6">
+          <Users className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0" />
+          <span className="line-clamp-1">{event.location} • {event.attendees} attendees</span>
+        </div>
+        <div style={{ transform: "translateZ(30px)" }} className="space-y-2">
+          {event.status === "upcoming" ? (
+            <Button onClick={handleRegister} className="w-full bg-green-500 text-black hover:bg-green-400 h-9 sm:h-10 text-xs sm:text-sm">Register Now</Button>
+          ) : event.status === "past" ? (
+            <Link to="/winners" className="block">
+              <Button className="w-full bg-blue-500 text-white hover:bg-blue-400 border-blue-900/40 h-9 sm:h-10 text-xs sm:text-sm">View Results</Button>
+            </Link>
+          ) : event.status === "active" ? (
+            <Button onClick={handleRegister} className="w-full bg-blue-500 text-white hover:bg-blue-400 h-9 sm:h-10 text-xs sm:text-sm">Join Now</Button>
+          ) : null}
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
