@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^\\$a = New-Object byte\\[\\] 48; \\[System\\.Security\\.Cryptography\\.RandomNumberGenerator\\]::Fill\\(\\$a\\); \\$auth = \\[Convert\\]::ToBase64String\\(\\$a\\)\\.Replace\\('\\+','-'\\)\\.Replace\\('/','_'\\)\\.TrimEnd\\('='\\); \\$b = New-Object byte\\[\\] 48; \\[System\\.Security\\.Cryptography\\.RandomNumberGenerator\\]::Fill\\(\\$b\\); \\$seed = \\[Convert\\]::ToBase64String\\(\\$b\\)\\.Replace\\('\\+','-'\\)\\.Replace\\('/','_'\\)\\.TrimEnd\\('='\\); Write-Output \"AUTH_SECRET=\\$auth\"; Write-Output \"SEED_SECRET=\\$seed\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

@@ -134,7 +134,7 @@ export const secureStorage = {
 };
 
 // Content validation helpers
-export const validateFormData = (data: Record<string, any>, schema: Record<string, { type: string; required?: boolean; max?: number }>): { valid: boolean; errors: Record<string, string> } => {
+export const validateFormData = (data: Record<string, unknown>, schema: Record<string, { type: string; required?: boolean; max?: number }>): { valid: boolean; errors: Record<string, string> } => {
   const errors: Record<string, string> = {};
   
   for (const [field, rules] of Object.entries(schema)) {
@@ -146,13 +146,13 @@ export const validateFormData = (data: Record<string, any>, schema: Record<strin
     }
     
     if (value) {
-      if (rules.type === 'email' && !validateEmail(value)) {
+      if (rules.type === 'email' && typeof value === 'string' && !validateEmail(value)) {
         errors[field] = 'Invalid email format';
       }
       if (rules.type === 'text' && typeof value !== 'string') {
         errors[field] = 'Must be text';
       }
-      if (rules.max && value.length > rules.max) {
+      if (rules.max && typeof value === 'string' && value.length > rules.max) {
         errors[field] = `Must not exceed ${rules.max} characters`;
       }
     }

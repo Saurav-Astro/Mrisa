@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Scene3D } from "@/components/Scene3D";
 import { validateEmail, sanitizeText } from "@/lib/security";
-import { authRateLimiter } from "@/integrations/supabase/client";
+import { authRateLimiter } from "@/lib/auth";
 
 const Login = () => {
   const [email, setEmail] = useState("");

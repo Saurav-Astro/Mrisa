@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Edit2, Trash2, X, Trophy, Users, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { deleteWinner, fetchEvents, fetchWinners, saveWinner } from "@/lib/api";
 import { sanitizeText, validateUrl, validateFormData } from "@/lib/security";
 
 interface Event {
@@ -58,19 +58,9 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
     team_members: "",
   });
 
-  useEffect(() => {
-    loadEvents();
-    loadWinners();
-  }, []);
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from("events")
-        .select("id, title, date")
-        .order("date", { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchEvents();
       setEvents((data as Event[]) || []);
     } catch (error) {
       toast({
@@ -79,18 +69,13 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
-  const loadWinners = async () => {
+  const loadWinners = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("winners")
-        .select("*")
-        .order("rank", { ascending: true });
-
-      if (error) throw error;
-      setWinners((data as any[]) || []);
+      const data = await fetchWinners();
+      setWinners((data as Winner[]) || []);
     } catch (error) {
       toast({
         title: "Error Loading Winners",
@@ -100,7 +85,12 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    void loadEvents();
+    void loadWinners();
+  }, [loadEvents, loadWinners]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,26 +176,13 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
       };
 
       if (editingWinner) {
-        const { error } = await supabase
-          .from("winners")
-          .update(winnerData as any)
-          .eq("id", editingWinner.id);
-
-        if (error) {
-          console.error("Update error:", error);
-          throw error;
-        }
+        await saveWinner(winnerData, editingWinner.id);
         toast({
           title: "Success",
           description: "Winner updated successfully",
         });
       } else {
-        const { error } = await supabase.from("winners").insert([winnerData as any]);
-
-        if (error) {
-          console.error("Insert error:", error);
-          throw error;
-        }
+        await saveWinner(winnerData);
         toast({
           title: "Success",
           description: "Winner added successfully",
@@ -214,11 +191,12 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
 
       resetForm();
       await loadWinners();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Full error:", error);
+      const message = error instanceof Error ? error.message : "Failed to save winner";
       toast({
         title: "Error",
-        description: error?.message || "Failed to save winner",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -231,9 +209,7 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.from("winners").delete().eq("id", id);
-
-      if (error) throw error;
+      await deleteWinner(id);
       toast({
         title: "Success",
         description: "Winner deleted successfully",
@@ -341,7 +317,7 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
                     }
                     disabled={isLoading}
                     required
-                    className="mt-2 w-full px-3 py-2 bg-[#1a1a2e]/50 border border-blue-900/40 rounded-lg text-white"
+                    className="mt-2 w-full px-3 py-2 bg-[#1a1a2e]/80 border border-blue-900/40 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                   >
                     <option value="">Select an event</option>
                     {events.map((event) => (
@@ -521,9 +497,12 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
 
             {/* Winners List */}
             {eventWinners.length === 0 ? (
-              <p className="text-gray-400 text-center py-6 sm:py-8 text-sm sm:text-base">
-                No winners added for this event yet
-              </p>
+              <div className="text-center py-8 bg-[#0d0d1a]/60 rounded-xl border border-blue-900/20">
+                <Trophy className="h-8 w-8 text-gray-600 mx-auto mb-2" />
+                <p className="text-gray-400 text-sm">
+                  No winners added for this event yet
+                </p>
+              </div>
             ) : (
               <div className="space-y-2 sm:space-y-3">
                 {eventWinners
@@ -601,11 +580,14 @@ export const WinnersManagement = ({ showForm: externalShowForm, setShowForm: ext
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-center py-8 sm:py-12 bg-[#121224]/70 rounded-xl sm:rounded-2xl border border-blue-900/40"
+          className="text-center py-16 bg-[#0d0d1a]/80 rounded-2xl border border-blue-900/40"
         >
-          <Trophy className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-          <p className="text-gray-400">
-            No events found. Create an event first to add winners.
+          <div className="w-16 h-16 bg-yellow-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Trophy className="h-8 w-8 text-yellow-400" />
+          </div>
+          <p className="text-white font-semibold text-lg mb-1">No events found</p>
+          <p className="text-gray-400 text-sm">
+            Create an event first to add winners.
           </p>
         </motion.div>
       )}

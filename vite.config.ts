@@ -12,7 +12,7 @@ export default defineConfig({
   server: {
     headers: {
       // Content Security Policy
-      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://khvehqcswysfflkghsbg.supabase.co https://api.dicebear.com; frame-ancestors 'none';",
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.dicebear.com; frame-ancestors 'none';",
       // X-Content-Type-Options prevents MIME type sniffing
       'X-Content-Type-Options': 'nosniff',
       // X-Frame-Options prevents clickjacking

@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Crown, Zap, Calendar, Users, Trophy } from "lucide-react";
 import { Scene3D } from "@/components/Scene3D";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { fetchEvents, fetchWinners } from "@/lib/api";
+import type { Variants } from "framer-motion";
 
 // Data structure for a winner
 interface Winner {
@@ -31,6 +32,16 @@ interface Event {
   date: string;
 }
 
+interface WinnerRecord {
+    id: string;
+    event_id: string;
+    player_name: string;
+    team_name: string | null;
+    rank: number;
+    image_url: string | null;
+    team_members: string | null;
+}
+
 const getRankColor = (rank: number) => {
     if (rank === 1) return { border: "border-yellow-400", shadow: "shadow-[0_0_25px_rgba(250,204,21,0.7)]" };
     if (rank === 2) return { border: "border-gray-400", shadow: "shadow-[0_0_20px_rgba(156,163,175,0.6)]" };
@@ -38,7 +49,7 @@ const getRankColor = (rank: number) => {
     return { border: "border-blue-900/40", shadow: "" };
 };
 
-const WinnerCard = ({ winner, variants }: { winner: Winner, variants: any }) => {
+const WinnerCard = ({ winner, variants }: { winner: Winner, variants: Variants }) => {
     const { border, shadow } = getRankColor(winner.rank);
     return (
         <motion.div
@@ -155,28 +166,11 @@ const Winners = () => {
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
-    useEffect(() => {
-        loadWinners();
-    }, []);
-
-    const loadWinners = async () => {
+    const loadWinners = useCallback(async () => {
         setIsLoading(true);
         try {
-            // Fetch all events
-            const { data: eventsData, error: eventsError } = await supabase
-                .from("events")
-                .select("id, title, date")
-                .order("date", { ascending: false });
-
-            if (eventsError) throw eventsError;
-
-            // Fetch all winners
-            const { data: winnersData, error: winnersError } = await supabase
-                .from("winners")
-                .select("*")
-                .order("rank", { ascending: true });
-
-            if (winnersError) throw winnersError;
+            const eventsData = await fetchEvents();
+            const winnersData = await fetchWinners();
 
             // Group winners by event
             const eventsWithWinners: EventWithWinners[] = (eventsData || []).map(
@@ -185,8 +179,8 @@ const Winners = () => {
                     title: event.title,
                     date: event.date,
                     winners: (winnersData || [])
-                        .filter((winner: any) => winner.event_id === event.id)
-                        .map((winner: any) => ({
+                        .filter((winner: WinnerRecord) => winner.event_id === event.id)
+                        .map((winner: WinnerRecord) => ({
                             id: winner.id,
                             player_name: winner.player_name,
                             team_name: winner.team_name || null,
@@ -198,18 +192,23 @@ const Winners = () => {
             );
 
             setEvents(eventsWithWinners);
-        } catch (error: any) {
+        } catch (error) {
             console.error("Error loading winners:", error);
+            const message = error instanceof Error ? error.message : "Failed to load winners data";
             toast({
                 title: "Error Loading Winners",
-                description: error?.message || "Failed to load winners data",
+                description: message,
                 variant: "destructive",
             });
             setEvents([]);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [toast]);
+
+    useEffect(() => {
+        void loadWinners();
+    }, [loadWinners]);
 
     return (
         <div className="relative min-h-screen py-8 sm:py-12 md:py-16 lg:py-20 text-gray-200">
@@ -233,7 +232,7 @@ const Winners = () => {
                         >
                             <Crown className="h-12 sm:h-16 w-12 sm:w-16 text-yellow-400" />
                         </motion.div>
-                        <h3 className="text-lg sm:text-xl md:text-2xl font-mono text-green-400 mt-3 sm:mt-4\">Loading Champions...</h3>
+                        <h3 className="text-lg sm:text-xl md:text-2xl font-mono text-green-400 mt-3 sm:mt-4">Loading Champions...</h3>
                     </motion.div>
                 ) : events.length === 0 ? (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12 sm:py-16 md:py-20">

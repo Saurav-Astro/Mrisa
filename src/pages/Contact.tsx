@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Scene3D } from "@/components/Scene3D";
+import { submitContactMessage } from "@/lib/api";
 
 const contactInfo = [
   { icon: Mail, label: "Email", value: "mrisa.set@mriu.edu.in", href: "mailto:mrisa.set@mriu.edu.in" },
@@ -29,8 +29,7 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("contact_messages").insert([formData]);
-      if (error) throw error;
+      await submitContactMessage(formData);
       toast({ title: "Message Sent!", description: "We'll be in touch soon." });
       setFormSubmitted(true); // Trigger success animation
     } catch (error) {

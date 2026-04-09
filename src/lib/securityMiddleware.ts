@@ -2,7 +2,7 @@
  * Security middleware and configuration for API requests
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { loadAdminSession } from '@/lib/api';
 
 /**
  * Error handler with proper logging
@@ -23,13 +23,13 @@ export class SecurityError extends Error {
  */
 export const verifyAuth = async () => {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    
-    if (error || !user) {
+    const session = await loadAdminSession();
+
+    if (!session) {
       throw new SecurityError('AUTH_REQUIRED', 'User must be authenticated', 401);
     }
-    
-    return user;
+
+    return session;
   } catch (error) {
     if (error instanceof SecurityError) throw error;
     throw new SecurityError('AUTH_ERROR', 'Authentication check failed', 500);
@@ -61,8 +61,8 @@ export const verifyAdmin = async () => {
 /**
  * Sanitizes database query parameters to prevent injection
  */
-export const sanitizeQueryParams = (params: Record<string, any>): Record<string, any> => {
-  const sanitized: Record<string, any> = {};
+export const sanitizeQueryParams = (params: Record<string, unknown>): Record<string, unknown> => {
+  const sanitized: Record<string, unknown> = {};
   
   for (const [key, value] of Object.entries(params)) {
     // Only allow alphanumeric and underscore in keys
@@ -75,7 +75,7 @@ export const sanitizeQueryParams = (params: Record<string, any>): Record<string,
     } else if (typeof value === 'string') {
       // Remove potential SQL injection attempts
       sanitized[key] = value
-        .replace(/[;\-\-]/g, '') // Remove SQL comment syntax
+        .replace(/[;-]/g, '') // Remove SQL comment syntax
         .replace(/(['"])/g, '\\$1') // Escape quotes
         .slice(0, 1000); // Limit length
     } else if (typeof value === 'number') {
@@ -168,7 +168,7 @@ export const getSecurityHeaders = (): Record<string, string> => {
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://khvehqcswysfflkghsbg.supabase.co",
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'",
   };
 };
 
@@ -177,7 +177,7 @@ export const getSecurityHeaders = (): Record<string, string> => {
  */
 export const logSecurityEvent = (
   eventType: string,
-  details: Record<string, any>,
+  details: Record<string, unknown>,
   severity: 'low' | 'medium' | 'high' | 'critical' = 'medium'
 ) => {
   const timestamp = new Date().toISOString();

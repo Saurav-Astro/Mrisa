@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { User, Session } from "@supabase/supabase-js";
-
-interface AuthState {
-  user: User | null;
-  session: Session | null;
-  loading: boolean;
-}
+import { ApiError, loadAdminSession, loginAdmin } from "@/lib/api";
+import {
+  AuthState,
+  clearAdminSession,
+  normalizeSessionUser,
+  readAdminSession,
+  storeAdminSession,
+} from "@/lib/auth";
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>({
@@ -16,45 +16,50 @@ export const useAuth = () => {
   });
 
   useEffect(() => {
-    // Get current session
     const initializeAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setAuthState({
-        user: session?.user || null,
-        session: session,
-        loading: false,
-      });
+      const storedSession = readAdminSession();
+      if (!storedSession) {
+        setAuthState({ user: null, session: null, loading: false });
+        return;
+      }
+
+      const session = await loadAdminSession();
+      if (session) {
+        storeAdminSession(session);
+        setAuthState({
+          user: normalizeSessionUser(session),
+          session,
+          loading: false,
+        });
+        return;
+      }
+
+      clearAdminSession();
+      setAuthState({ user: null, session: null, loading: false });
     };
 
     initializeAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setAuthState({
-          user: session?.user || null,
-          session: session,
-          loading: false,
-        });
-      }
-    );
-
-    return () => {
-      subscription?.unsubscribe();
-    };
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { error, data } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error, data };
+    try {
+      const session = await loginAdmin(email, password);
+      storeAdminSession(session);
+      setAuthState({
+        user: normalizeSessionUser(session),
+        session,
+        loading: false,
+      });
+      return { error: null, data: session };
+    } catch (error) {
+      return { error: error instanceof ApiError ? error : new Error("Login failed"), data: null };
+    }
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    clearAdminSession();
+    setAuthState({ user: null, session: null, loading: false });
+    return { error: null };
   };
 
   return {

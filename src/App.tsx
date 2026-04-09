@@ -16,14 +16,18 @@ import Alumni from "./pages/Alumni";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import RegistrationPage from "./pages/RegistrationPage";
 import NotFound from "./pages/NotFound";
+import RegisterPage from "./pages/RegisterPage";
+import { RegistrationSubmissions } from "@/components/RegistrationSubmissions";
+import { AdminLayout } from "@/components/AdminLayout";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  // Hide navbar on login, dashboard and events management pages
-  const hideNavbar = ["/login", "/dashboard", "/admin/events", "/admin/winners"].includes(location.pathname);
+  // Hide navbar on login, dashboard and admin pages
+  const hideNavbar = ["/login", "/dashboard", "/admin/events", "/admin/winners", "/admin/registrations"].includes(location.pathname) || location.pathname.startsWith("/admin/submissions") || location.pathname.startsWith("/register/");
 
   return (
     <div className="min-h-screen bg-background relative matrix-bg">
@@ -61,6 +65,25 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/submissions/:eventId"
+          element={
+            <ProtectedRoute>
+              <AdminLayout title="Registrations">
+                <RegistrationSubmissions />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/registrations"
+          element={
+            <ProtectedRoute>
+              <RegistrationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/register/:eventId" element={<RegisterPage />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

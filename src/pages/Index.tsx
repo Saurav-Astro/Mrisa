@@ -5,7 +5,7 @@ import { Scene3D } from "@/components/Scene3D";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-// --- REMOVED: Unused event interface and Supabase client import ---
+// --- REMOVED: Unused event interface import ---
 
 const Index = () => {
   const navigate = useNavigate();

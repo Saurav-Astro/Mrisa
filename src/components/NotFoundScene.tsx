@@ -62,7 +62,7 @@ function ParticleNebula() {
   useFrame((state) => {
     if (meshRef.current) {
       particles.forEach((particle, i) => {
-        let { factor, speed } = particle;
+        const { factor, speed } = particle;
         const t = (particle.time += speed);
         
         // Swirling motion logic
