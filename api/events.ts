@@ -102,7 +102,7 @@ export default async function handler(
 
     if (req.method === "POST") {
       // Max 6 MB — covers base64 QR images
-      const body = await readBodySecure(req, res, 6 * 1024 * 1024);
+      const body = await readBodySecure(req, res, 10 * 1024 * 1024);
       if (!body) return;
 
       const now = new Date().toISOString();
@@ -139,7 +139,7 @@ export default async function handler(
     }
 
     if (req.method === "PUT") {
-      const body = await readBodySecure(req, res, 6 * 1024 * 1024);
+      const body = await readBodySecure(req, res, 10 * 1024 * 1024);
       if (!body) return;
 
       const id = sanitizeString(body.id, 64);

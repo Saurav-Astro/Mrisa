@@ -104,7 +104,7 @@ export default async function handler(
     if (!checkRateLimit(req, res, "POST:/api/registrations", { limit: 5, windowMs: 10 * 60 * 1000 })) return;
 
     // Max 4 MB (covers base64 QR + team data)
-    const body = await readBodySecure(req, res, 4 * 1024 * 1024);
+    const body = await readBodySecure(req, res, 10 * 1024 * 1024);
     if (!body) return;
 
     const eventId = sanitizeString(body.event_id, 64);
