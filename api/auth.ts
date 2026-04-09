@@ -114,20 +114,32 @@ export default async function handler(
         });
       }
 
-      // DB lookup
-      const user = await findAdminUser(email);
-      if (!user || user.role !== "admin" || !validateAdminPassword(password, user.password_hash)) {
-        return sendJson(res, 401, { error: "Invalid email or password" });
+      // If no bootstrap creds and no MONGO_URI → give a clear config error
+      if (!process.env.MONGO_URI) {
+        console.error("[auth] Missing MONGO_URI environment variable. Set ADMIN_BOOTSTRAP_EMAIL + ADMIN_BOOTSTRAP_PASSWORD or MONGO_URI in Vercel environment variables.");
+        return sendJson(res, 503, {
+          error: "Service not configured. Please set environment variables on Vercel: ADMIN_BOOTSTRAP_EMAIL, ADMIN_BOOTSTRAP_PASSWORD (and optionally MONGO_URI).",
+        });
       }
 
-      const token = createAdminToken(email);
-      const session = verifyAdminToken(token);
-      return sendJson(res, 200, {
-        email: session?.email || email,
-        created_at: session?.created_at || new Date().toISOString(),
-        expires_at: session?.expires_at || new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
-        token,
-      });
+      // DB lookup — wrapped so a DB error never returns 500
+      try {
+        const user = await findAdminUser(email);
+        if (!user || user.role !== "admin" || !validateAdminPassword(password, user.password_hash)) {
+          return sendJson(res, 401, { error: "Invalid email or password" });
+        }
+        const token = createAdminToken(email);
+        const session = verifyAdminToken(token);
+        return sendJson(res, 200, {
+          email: session?.email || email,
+          created_at: session?.created_at || new Date().toISOString(),
+          expires_at: session?.expires_at || new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+          token,
+        });
+      } catch (dbErr) {
+        console.error("[auth] DB lookup failed:", dbErr instanceof Error ? dbErr.message : String(dbErr));
+        return sendJson(res, 401, { error: "Invalid email or password" });
+      }
     }
 
     // ── DELETE: logout (client-side only, no server state) ───────────────
