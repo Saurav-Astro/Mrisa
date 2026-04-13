@@ -226,43 +226,6 @@ const RegisterPage = () => {
       </div>
     );
   };
-
-    return (
-      <div key={field.id}>
-        <Label className="text-sm text-gray-300">
-          {field.label} {isRequired && <span className="text-red-500">*</span>}
-        </Label>
-        {field.type === "textarea" ? (
-          <Textarea
-            value={value}
-            onChange={(e) => handleChange(e.target.value)}
-            required={isRequired}
-            className="mt-1.5 bg-[#1a1a2e]/50 border-blue-900/40 text-white focus:border-green-500/50"
-          />
-        ) : (
-          <div className="relative">
-            <Input
-              type={field.type === "url" ? "url" : field.type === "date" ? "date" : field.type === "email" ? "email" : "text"}
-              value={value}
-              onChange={(e) => handleChange(e.target.value)}
-              required={isRequired}
-              placeholder={field.id === "aadhar_number" ? "12-digit Aadhar number" : ""}
-              className={`mt-1.5 bg-[#1a1a2e]/50 border-blue-900/40 text-white focus:border-green-500/50 ${field.id === 'aadhar_number' && value.length > 0 && value.length < 12 ? 'border-yellow-500/50' : ''}`}
-            />
-            {field.id === "aadhar_number" && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                {value.length === 12 ? (
-                  <span className="text-green-500 text-[10px] font-bold">12/12</span>
-                ) : value.length > 0 ? (
-                  <span className="text-yellow-500 text-[10px] font-bold">{value.length}/12</span>
-                ) : null}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0a0a14] flex items-center justify-center">
