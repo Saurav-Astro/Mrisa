@@ -175,18 +175,57 @@ const RegisterPage = () => {
       setIsSubmitting(false);
     }
   };
-  const renderField = (field: any, index: number) => {
+    const renderField = (field: any, index: number) => {
     const value = membersData[index]?.[field.id] || "";
     const isRequired = field.required && (index < numTeamMembers || event?.team_enforce_details);
+    const isAadharField = field.id === "aadhar_number" || field.label.toLowerCase().includes("aadhar");
 
     const handleChange = (val: string) => {
-      if (field.id === "aadhar_number") {
+      if (isAadharField) {
         const numericValue = val.replace(/\D/g, "").slice(0, 12);
         handleMemberChange(index, field.id, numericValue);
       } else {
         handleMemberChange(index, field.id, val);
       }
     };
+
+    return (
+      <div key={field.id}>
+        <Label className="text-sm text-gray-300">
+          {field.label} {isRequired && <span className="text-red-500">*</span>}
+        </Label>
+        {field.type === "textarea" ? (
+          <Textarea
+            value={value}
+            onChange={(e) => handleChange(e.target.value)}
+            required={isRequired}
+            className="mt-1.5 bg-[#1a1a2e]/50 border-blue-900/40 text-white focus:border-green-500/50"
+          />
+        ) : (
+          <div className="relative">
+            <Input
+              type={isAadharField ? "tel" : field.type === "url" ? "url" : field.type === "date" ? "date" : field.type === "email" ? "email" : "text"}
+              inputMode={isAadharField ? "numeric" : undefined}
+              value={value}
+              onChange={(e) => handleChange(e.target.value)}
+              required={isRequired}
+              placeholder={isAadharField ? "12-digit Aadhar number" : ""}
+              className={`mt-1.5 bg-[#1a1a2e]/50 border-blue-900/40 text-white focus:border-green-500/50 ${isAadharField && value.length > 0 && value.length < 12 ? 'border-yellow-500/50' : ''}`}
+            />
+            {isAadharField && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                {value.length === 12 ? (
+                  <span className="text-green-500 text-[10px] font-bold">12/12</span>
+                ) : value.length > 0 ? (
+                  <span className="text-yellow-500 text-[10px] font-bold">{value.length}/12</span>
+                ) : null}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
     return (
       <div key={field.id}>
@@ -465,3 +504,4 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
+
