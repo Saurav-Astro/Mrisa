@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Users, CreditCard, CheckCircle, Building2, GraduationCap, Calendar, Clock, MapPin, ArrowRight, ExternalLink } from "lucide-react";
@@ -43,6 +43,7 @@ const RegisterPage = () => {
   const [transactionId, setTransactionId] = useState<string>("");
   const [transactionIdError, setTransactionIdError] = useState<string>("");
   const [teamName, setTeamName] = useState("");
+
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
@@ -53,7 +54,6 @@ const RegisterPage = () => {
           setEvent(ev);
           const minMembers = ev.participation_type === "team" ? Number(ev.team_min_members) || 1 : 1;
           setMembersData(Array.from({ length: minMembers }, () => ({})));
-          // Fetch live registration count
           fetchRegistrationCount(eventId!).then(setLiveCount);
         }
       } catch (error) {
@@ -101,6 +101,7 @@ const RegisterPage = () => {
     setRegType(type);
     setStep("form");
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (event.registration_type === "paid" && !transactionId.trim()) {
@@ -109,8 +110,11 @@ const RegisterPage = () => {
     }
 
     if (regType === "organization") {
+      const aadharField = activeFields.find(f => f.id === "aadhar_number" || (f.label && f.label.toLowerCase().includes("aadhar")));
+      const aadharFieldId = aadharField?.id || "aadhar_number";
+      
       for (let i = 0; i < membersData.length; i++) {
-        const aadhar = membersData[i].aadhar_number;
+        const aadhar = membersData[i][aadharFieldId];
         if (!aadhar || aadhar.length !== 12 || !/^\d+$/.test(aadhar)) {
           toast({
             title: `Invalid Aadhar for Member ${i + 1}`,
@@ -121,12 +125,12 @@ const RegisterPage = () => {
         }
       }
       
-      const aadhars = membersData.map(m => m.aadhar_number).filter(Boolean);
+      const aadhars = membersData.map(m => m[aadharFieldId]).filter(Boolean);
       const uniqueAadhars = new Set(aadhars);
       if (uniqueAadhars.size !== aadhars.length) {
         toast({
           title: "Duplicate Aadhar Numbers",
-          description: "Each member in your team must have a unique Aadhar number.",
+          description: "Each member in your team must have a unique Aadhar number and it must not repeat.",
           variant: "destructive",
         });
         return;
@@ -175,7 +179,8 @@ const RegisterPage = () => {
       setIsSubmitting(false);
     }
   };
-    const renderField = (field: any, index: number) => {
+
+  const renderField = (field: any, index: number) => {
     const value = membersData[index]?.[field.id] || "";
     const isRequired = field.required && (index < numTeamMembers || event?.team_enforce_details);
     const isAadharField = field.id === "aadhar_number" || field.label.toLowerCase().includes("aadhar");
@@ -226,6 +231,7 @@ const RegisterPage = () => {
       </div>
     );
   };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0a0a14] flex items-center justify-center">
@@ -467,4 +473,3 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
-

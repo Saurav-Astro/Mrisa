@@ -26,7 +26,7 @@ const DEFAULT_FORM_FIELDS: FormField[] = [
   { id: "dob", label: "Date of Birth", type: "date", enabled: false, required: false, category: "Common" },
   { id: "github", label: "GitHub Profile", type: "url", enabled: false, required: false, category: "Common" },
   { id: "org_name", label: "Organization Name", type: "text", enabled: false, required: false, category: "Organization" },
-  { id: "aadhar", label: "Aadhar Number", type: "text", enabled: false, required: false, category: "Organization" },
+  { id: "aadhar_number", label: "Aadhar Number", type: "text", enabled: false, required: false, category: "Organization" },
   { id: "emp_title", label: "Employment Title", type: "text", enabled: false, required: false, category: "Organization" },
   { id: "uni_name", label: "University Name", type: "text", enabled: false, required: false, category: "University" },
   { id: "address", label: "Address", type: "textarea", enabled: false, required: false, category: "University" },
@@ -52,10 +52,7 @@ export const RegistrationSubmissions = () => {
   const [isTogglingOpen, setIsTogglingOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // View mode state
   const [selectedReg, setSelectedReg] = useState<any | null>(null);
-
-  // Edit mode state
   const [editingReg, setEditingReg] = useState<any | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [isEditSaving, setIsEditSaving] = useState(false);
@@ -104,7 +101,6 @@ export const RegistrationSubmissions = () => {
     }
   };
 
-  // Instantly toggle registration open / closed and persist
   const handleToggleRegistrationOpen = async () => {
     if (!eventData) return;
     setIsTogglingOpen(true);
@@ -147,7 +143,6 @@ export const RegistrationSubmissions = () => {
 
   const openEdit = (reg: any) => {
     setEditingReg(reg);
-    // Flatten for easy editing: use team_members[0] or dynamic_fields as the base
     const primary = (reg.team_members && reg.team_members[0]) || reg.dynamic_fields || {};
     setEditData({
       name: reg.name || primary.name || "",
@@ -156,7 +151,6 @@ export const RegistrationSubmissions = () => {
       payment_proof_url: reg.payment_proof_url || "",
       team_members: reg.team_members ? JSON.stringify(reg.team_members, null, 2) : "",
       registration_category: reg.registration_category || "",
-      // dynamic fields flattened
       ...Object.fromEntries(
         Object.entries(primary).filter(([k]) => !["name", "email"].includes(k))
       ),
@@ -167,7 +161,6 @@ export const RegistrationSubmissions = () => {
     if (!editingReg) return;
     setIsEditSaving(true);
     try {
-      // Parse team_members back if changed
       let team_members = editingReg.team_members;
       if (editData.team_members !== undefined) {
         try { team_members = JSON.parse(editData.team_members); } catch { /* keep original */ }
@@ -185,7 +178,6 @@ export const RegistrationSubmissions = () => {
 
       await updateRegistration(editingReg.id, payload);
 
-      // Refresh local state
       setRegistrations(prev => prev.map(r =>
         r.id === editingReg.id ? { ...r, ...payload, id: r.id, created_at: r.created_at } : r
       ));
@@ -200,47 +192,62 @@ export const RegistrationSubmissions = () => {
 
   const exportCSV = () => {
     if (!registrations.length) return;
-    let csvContent = "data:text/csv;charset=utf-8,";
-    const headers = ["ID", "Registered At", "Name", "Email", "Team Name", "Category", "Payment Proof"];
-
-    const dynamicHeaders = new Set<string>();
+    
+    let maxMembers = 1;
+    const dynamicFields = new Set<string>();
     registrations.forEach(reg => {
-      if (reg.team_members && Array.isArray(reg.team_members)) {
-        reg.team_members.forEach((m: any) => Object.keys(m).forEach(k => dynamicHeaders.add(k)));
-      } else if (reg.dynamic_fields) {
-        Object.keys(reg.dynamic_fields).forEach(k => dynamicHeaders.add(k));
-      }
+      const members = Array.isArray(reg.team_members) ? reg.team_members : [reg.dynamic_fields || {}];
+      if (members.length > maxMembers) maxMembers = members.length;
+      members.forEach((m: any) => {
+        Object.keys(m).forEach(k => {
+          if (!["name", "email"].includes(k)) dynamicFields.add(k);
+        });
+      });
     });
 
-    const dynamicHeadersArray = Array.from(dynamicHeaders).filter(h => !["name", "email"].includes(h));
-    csvContent += headers.concat(dynamicHeadersArray).join(",") + "\r\n";
+    const dynamicFieldsList = Array.from(dynamicFields);
+    const headers = ["ID", "Timestamp", "Team Name", "Category", "Payment Proof", "Transaction ID"];
+    for (let i = 1; i <= maxMembers; i++) {
+        headers.push(`Member ${i} Name`);
+        headers.push(`Member ${i} Email`);
+        dynamicFieldsList.forEach(df => {
+            const title = df.replace(/_/g, " ").toUpperCase();
+            headers.push(`Member ${i} ${title}`);
+        });
+    }
+    
+    let csvContent = headers.join(",") + "\r\n";
 
     registrations.forEach(reg => {
       const row = [
         reg.id,
-        new Date(reg.created_at).toLocaleString(),
-        `"${reg.name || ''}"`,
-        `"${reg.email || ''}"`,
-        reg.team_name ? `"${reg.team_name}"` : "N/A",
+        new Date(reg.created_at).toLocaleString().replace(/,/g, ""),
+        reg.team_name ? `"${reg.team_name.replace(/"/g, '""')}"` : "N/A",
         reg.registration_category || "N/A",
         reg.payment_proof_url || "N/A",
+        reg.transaction_id || "N/A"
       ];
-
-      const primaryData = (reg.team_members && reg.team_members[0]) || reg.dynamic_fields || {};
-      dynamicHeadersArray.forEach(header => {
-        const val = primaryData[header] || "";
-        row.push(`"${val}"`);
-      });
+      const members = Array.isArray(reg.team_members) ? reg.team_members : [reg.dynamic_fields || {}];
+      for (let i = 0; i < maxMembers; i++) {
+        const m = members[i] || {};
+        row.push(`"${(m.name || "").toString().replace(/"/g, '""')}"`);
+        row.push(`"${(m.email || "").toString().replace(/"/g, '""')}"`);
+        dynamicFieldsList.forEach(df => {
+          row.push(`"${(m[df] || "").toString().replace(/"/g, '""')}"`);
+        });
+      }
       csvContent += row.join(",") + "\r\n";
     });
 
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", `submissions_${eventId}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const filtered = registrations.filter(r => {
@@ -262,7 +269,6 @@ export const RegistrationSubmissions = () => {
         </div>
       </div>
 
-      {/* Main tab bar */}
       <div className="flex flex-wrap gap-1 bg-[#121224]/70 p-1 rounded-xl border border-blue-900/40 w-max">
         <Button
           variant="ghost"
@@ -278,12 +284,11 @@ export const RegistrationSubmissions = () => {
         >
           <Radio className="w-4 h-4" />
           Management
-          {/* Live status dot */}
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${(eventData?.registration_open ?? true) ? 'bg-green-400 animate-pulse' : 'bg-red-500'}`} />
         </Button>
         <Button
           variant="ghost"
-          onClick={() => setActiveMainTab("settings")}
+          onClick={() => setActiveFormTab("settings")}
           className={`rounded-lg px-5 ${activeMainTab === 'settings' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'}`}
         >
           Form Builder
@@ -291,7 +296,6 @@ export const RegistrationSubmissions = () => {
       </div>
 
       <AnimatePresence mode="wait">
-        {/* ======= SUBMISSIONS TAB ======= */}
         {activeMainTab === 'submissions' ? (
           <motion.div key="submissions" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
             <div className="flex justify-end mb-4">
@@ -413,16 +417,11 @@ export const RegistrationSubmissions = () => {
           </motion.div>
 
         ) : activeMainTab === 'management' ? (
-          /* ======= MANAGEMENT TAB ======= */
           <motion.div key="management" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-
-            {/* ── Hero status card ──────────────────────────────── */}
             <div className={`relative rounded-2xl border-2 overflow-hidden transition-colors duration-500 ${(formData.registration_open ?? true) ? 'border-green-500/60 bg-green-950/20' : 'border-red-500/40 bg-red-950/20'}`}>
-              {/* animated glow bar */}
               <div className={`absolute top-0 left-0 right-0 h-1 transition-colors duration-500 ${(formData.registration_open ?? true) ? 'bg-gradient-to-r from-green-500 via-emerald-400 to-green-500 animate-pulse' : 'bg-red-600/60'}`} />
 
               <div className="p-8 flex flex-col sm:flex-row items-center gap-8">
-                {/* Big icon */}
                 <div className={`w-24 h-24 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors duration-500 ${(formData.registration_open ?? true) ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
                   {(formData.registration_open ?? true)
                     ? <Unlock className="w-12 h-12 text-green-400" />
@@ -430,7 +429,6 @@ export const RegistrationSubmissions = () => {
                   }
                 </div>
 
-                {/* Status text */}
                 <div className="flex-1 text-center sm:text-left">
                   <div className="flex items-center gap-3 justify-center sm:justify-start mb-2">
                     <span className={`w-3 h-3 rounded-full flex-shrink-0 ${(formData.registration_open ?? true) ? 'bg-green-400 animate-pulse' : 'bg-red-500'}`} />
@@ -445,7 +443,6 @@ export const RegistrationSubmissions = () => {
                   </p>
                 </div>
 
-                {/* Toggle button */}
                 <div className="flex-shrink-0">
                   <Button
                     onClick={handleToggleRegistrationOpen}
@@ -467,7 +464,6 @@ export const RegistrationSubmissions = () => {
               </div>
             </div>
 
-            {/* ── Quick stats ──────────────────────────────────── */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-[#121224]/70 border border-blue-900/40 rounded-xl p-5 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-blue-900/30 flex items-center justify-center">
@@ -502,7 +498,6 @@ export const RegistrationSubmissions = () => {
               </div>
             </div>
 
-            {/* ── What this affects ─────────────────────────────── */}
             <div className="bg-[#121224]/70 border border-blue-900/40 rounded-2xl p-6">
               <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
                 <Radio className="w-4 h-4 text-orange-400" />
@@ -512,7 +507,7 @@ export const RegistrationSubmissions = () => {
                 {[
                   { icon: '🎫', title: 'Register Now Button', desc: 'Hidden on event card when closed', live: true },
                   { icon: '📋', title: 'Registration Form', desc: 'Shows "Registration Closed" page when closed', live: true },
-                  { icon: '📊', title: 'Submissions View', desc: 'Always accessible to admin', live: false },
+                  { icon: '📈', title: 'Submissions View', desc: 'Always accessible to admin', live: false },
                   { icon: '⚙️', title: 'Form Builder & Settings', desc: 'Always accessible to admin', live: false },
                 ].map(item => (
                   <div key={item.title} className="flex items-start gap-3 bg-[#1a1a2e]/50 rounded-xl p-3 border border-blue-900/20">
@@ -531,7 +526,6 @@ export const RegistrationSubmissions = () => {
           </motion.div>
 
         ) : (
-          /* ======= SETTINGS TAB ======= */
           <motion.div key="settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
             <div className="bg-[#121224]/70 backdrop-blur-md rounded-2xl border border-blue-900/40 p-6">
               <div className="flex gap-2 border-b border-blue-900/40 pb-4 mb-6">
@@ -541,7 +535,6 @@ export const RegistrationSubmissions = () => {
               </div>
 
               <div className="min-h-[300px]">
-                {/* Payment Logic */}
                 {activeFormTab === 'payment' && (
                   <div className="space-y-4 max-w-2xl">
                     <div className="flex items-center space-x-2 border border-blue-900/40 p-4 rounded-xl bg-[#1a1a2e]/50">
@@ -550,14 +543,12 @@ export const RegistrationSubmissions = () => {
                     </div>
                     {formData.registration_type === 'paid' && (
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-5">
-                        {/* ── QR Code Image ─────────────────────────── */}
                         <div className="border border-blue-900/40 rounded-xl bg-[#1a1a2e]/30 p-4 space-y-4">
                           <div>
                             <Label className="text-gray-200 font-semibold text-sm block">QR Code Image</Label>
                             <p className="text-gray-500 text-xs mt-0.5">The QR image registrants will scan. Choose one method below.</p>
                           </div>
 
-                          {/* Method toggle */}
                           <div className="flex bg-[#0f0f1e] rounded-lg p-1 border border-blue-900/30 w-max">
                             <button
                               type="button"
@@ -575,11 +566,9 @@ export const RegistrationSubmissions = () => {
                             </button>
                           </div>
 
-                          {/* Upload option */}
                           {(formData._qrMethod ?? 'upload') === 'upload' && (
                             <div className="space-y-3">
                               {formData.payment_qr_url?.startsWith('data:image') ? (
-                                /* Preview of uploaded file */
                                 <div className="flex items-start gap-4">
                                   <div className="bg-white p-2 rounded-lg">
                                     <img
@@ -602,7 +591,6 @@ export const RegistrationSubmissions = () => {
                                   </div>
                                 </div>
                               ) : (
-                                /* Upload drop zone */
                                 <label className="flex items-center gap-3 cursor-pointer border-2 border-dashed border-blue-900/60 hover:border-blue-500/50 rounded-xl p-5 bg-[#0f0f1e]/50 transition-colors group">
                                   <div className="w-10 h-10 rounded-xl bg-blue-900/20 group-hover:bg-blue-900/40 flex items-center justify-center flex-shrink-0 transition-colors">
                                     <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -633,10 +621,8 @@ export const RegistrationSubmissions = () => {
                             </div>
                           )}
 
-                          {/* URL option */}
                           {formData._qrMethod === 'url' && (
                             <div className="space-y-2">
-                              {/* Preview of URL image */}
                               {formData.payment_qr_url && !formData.payment_qr_url.startsWith('data:') && (
                                 formData.payment_qr_url.startsWith('https://') || formData.payment_qr_url.startsWith('http://')
                               ) && (
@@ -674,7 +660,6 @@ export const RegistrationSubmissions = () => {
                           )}
                         </div>
 
-                        {/* Payment Link — completely separate from QR image */}
                         <div className="border border-yellow-800/40 rounded-xl bg-yellow-950/10 p-4 space-y-2">
                           <div>
                             <Label className="text-yellow-300 font-semibold text-sm block">Payment Link / UPI URL</Label>
@@ -707,7 +692,6 @@ export const RegistrationSubmissions = () => {
                   </div>
                 )}
 
-                {/* Participation */}
                 {activeFormTab === 'participation' && (
                   <div className="space-y-4 max-w-2xl">
                     <div className="flex items-center space-x-2 border border-blue-900/40 p-4 rounded-xl bg-[#1a1a2e]/50">
@@ -732,7 +716,6 @@ export const RegistrationSubmissions = () => {
                   </div>
                 )}
 
-                {/* Form Fields */}
                 {activeFormTab === 'fields' && (
                   <div className="space-y-6 max-w-3xl">
                     <p className="text-gray-400 text-sm">Configure what details you want to collect from the users during registration. "Name" and "Email" are recommended to always remain enabled.</p>
@@ -775,7 +758,6 @@ export const RegistrationSubmissions = () => {
         )}
       </AnimatePresence>
 
-      {/* ======= VIEW MODAL ======= */}
       <Dialog open={!!selectedReg} onOpenChange={(o) => !o && setSelectedReg(null)}>
         {selectedReg && (
           <DialogContent className="bg-[#121224] border border-blue-900/40 text-gray-200 max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -840,7 +822,6 @@ export const RegistrationSubmissions = () => {
         )}
       </Dialog>
 
-      {/* ======= EDIT MODAL ======= */}
       <Dialog open={!!editingReg} onOpenChange={(o) => !o && setEditingReg(null)}>
         {editingReg && (
           <DialogContent className="bg-[#121224] border border-emerald-900/40 text-gray-200 max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -850,8 +831,6 @@ export const RegistrationSubmissions = () => {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
-
-              {/* Primary fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-gray-300 text-sm">Name</Label>
@@ -875,7 +854,6 @@ export const RegistrationSubmissions = () => {
                 <Input value={editData.payment_proof_url || ""} onChange={e => setEditData({ ...editData, payment_proof_url: e.target.value })} placeholder="https://..." className="mt-1.5 bg-[#1a1a2e]/50 border-yellow-900/40 text-white" />
               </div>
 
-              {/* Dynamic fields from dynamic_fields object */}
               {editingReg.dynamic_fields && Object.entries(editingReg.dynamic_fields)
                 .filter(([k]) => !["name", "email"].includes(k))
                 .map(([k]) => (
@@ -885,7 +863,6 @@ export const RegistrationSubmissions = () => {
                   </div>
                 ))}
 
-              {/* Team members JSON editor */}
               {editingReg.team_members && (
                 <div>
                   <Label className="text-gray-300 text-sm">Team Members (JSON)</Label>
