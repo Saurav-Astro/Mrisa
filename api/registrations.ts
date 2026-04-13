@@ -8,7 +8,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   const db = await getMongoDb();
   const col = db?.collection("registrations");
   
-  // Robust query parsing for portability
   const url = new URL(req.url || "", "http://localhost");
   const q = Object.fromEntries(url.searchParams.entries());
 
@@ -34,12 +33,37 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     if (!col) { res.statusCode = 500; return res.end('{"error":"No DB"}'); }
     let b: any = {}; try { let r = ""; for await (const c of req) r += c; b = JSON.parse(r || "{}"); } catch { }
     const doc = { ...b, created_at: new Date().toISOString() };
+    
     if (doc.transaction_id) {
         const norm = doc.transaction_id.toLowerCase().replace(/\s+/g, "");
         const ex = await col.findOne({ t_norm: norm });
-        if (ex) { res.statusCode = 409; return res.end('{"error":"Duplicate"}'); }
+        if (ex) { res.statusCode = 409; return res.end('{"error":"Duplicate transaction"}'); }
         doc.t_norm = norm;
     }
+
+    if (doc.registration_category === "organization" && Array.isArray(doc.team_members)) {
+        for (const m of doc.team_members) {
+            const aadhar = m.aadhar_number;
+            if (aadhar) {
+                if (aadhar.length !== 12 || !/^\d+$/.test(aadhar)) {
+                    res.statusCode = 400;
+                    return res.end(JSON.stringify({ error: `Invalid Aadhar format: ${aadhar}` }));
+                }
+                const ex = await col.findOne({
+                    $or: [
+                        { "team_members.aadhar_number": aadhar },
+                        { "dynamic_fields.aadhar_number": aadhar },
+                        { "aadhar_number": aadhar }
+                    ]
+                });
+                if (ex) {
+                    res.statusCode = 409;
+                    return res.end(JSON.stringify({ error: `Duplicate Aadhar: ${aadhar} is already registered.` }));
+                }
+            }
+        }
+    }
+
     await col.insertOne(doc);
     return res.end('{"ok":true}');
   }
