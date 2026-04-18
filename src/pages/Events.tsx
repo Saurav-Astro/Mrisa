@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Scene3D } from "@/components/Scene3D";
 import ReactMarkdown from 'react-markdown';
 import { fetchEvents as fetchEventsApi, fetchRegistrationCount } from "@/lib/api";
+import { slugify } from "@/lib/slugify";
 
 interface CTFEvent {
   id: string;
@@ -61,7 +62,7 @@ const EventCard = ({ event }: { event: CTFEvent }) => {
     if (event.registration_link) {
       window.open(event.registration_link, "_blank");
     } else {
-      window.open(`/register/${event.id}`, "_blank");
+      window.open(`/register/${slugify(event.title)}`, "_blank");
     }
   };
 
@@ -175,7 +176,7 @@ const Events = () => {
     void loadEvents();
   }, []);
 
-  const filteredEvents = events.filter(e => filter === "all" || e.status === filter);
+  const filteredEvents = Array.isArray(events) ? events.filter(e => filter === "all" || e.status === filter) : [];
 
   return (
     <div className="relative text-gray-200">

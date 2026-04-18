@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ApiError, loadAdminSession, loginAdmin } from "@/lib/api";
+import { ApiError, loginAdmin } from "@/lib/api";
 import {
   AuthState,
   clearAdminSession,
@@ -16,26 +16,19 @@ export const useAuth = () => {
   });
 
   useEffect(() => {
-    const initializeAuth = async () => {
+    const initializeAuth = () => {
+      // Read session directly from localStorage — our JWT is self-validating.
+      // No need for a server round-trip; the token expiry is encoded in the token itself.
       const storedSession = readAdminSession();
-      if (!storedSession) {
-        setAuthState({ user: null, session: null, loading: false });
-        return;
-      }
-
-      const session = await loadAdminSession();
-      if (session) {
-        storeAdminSession(session);
+      if (storedSession) {
         setAuthState({
-          user: normalizeSessionUser(session),
-          session,
+          user: normalizeSessionUser(storedSession),
+          session: storedSession,
           loading: false,
         });
-        return;
+      } else {
+        setAuthState({ user: null, session: null, loading: false });
       }
-
-      clearAdminSession();
-      setAuthState({ user: null, session: null, loading: false });
     };
 
     initializeAuth();

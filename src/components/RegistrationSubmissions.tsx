@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trash2, ExternalLink, Download, Search, CheckCircle, CreditCard, UserPlus, FileText, Save, Edit3, X, Radio, Lock, Unlock } from "lucide-react";
+import { ArrowLeft, Trash2, ExternalLink, Download, Search, CheckCircle, CreditCard, UserPlus, FileText, Save, Edit3, X, Radio, Lock, Unlock, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +36,7 @@ const DEFAULT_FORM_FIELDS: FormField[] = [
 ];
 
 type MainTabType = "submissions" | "settings" | "management";
-type FormTabType = "payment" | "participation" | "fields";
+type FormTabType = "payment" | "participation" | "fields" | "google_form";
 
 export const RegistrationSubmissions = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -288,7 +288,7 @@ export const RegistrationSubmissions = () => {
         </Button>
         <Button
           variant="ghost"
-          onClick={() => setActiveFormTab("settings")}
+          onClick={() => setActiveMainTab("settings")}
           className={`rounded-lg px-5 ${activeMainTab === 'settings' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'}`}
         >
           Form Builder
@@ -412,6 +412,69 @@ export const RegistrationSubmissions = () => {
                     </tbody>
                   </table>
                 )}
+
+                {activeFormTab === 'google_form' && (
+                  <div className="space-y-6 max-w-2xl">
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      Set separate Google Form links for each registration category.
+                      Toggle <span className="text-red-400 font-semibold">ON</span> to redirect registrants directly to the Google Form, or keep <span className="text-green-400 font-semibold">OFF</span> to use the built-in form.
+                    </p>
+
+                    <div className="border border-emerald-800/40 rounded-xl bg-emerald-950/10 overflow-hidden">
+                      <div className="bg-emerald-900/20 px-5 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">🏢</span>
+                          <h4 className="font-bold text-emerald-300">Organization Registration</h4>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs">{formData.use_google_form_org ? <span className="text-red-400 font-semibold">Redirecting to Google Form</span> : <span className="text-green-400 font-semibold">Built-in Form Active</span>}</span>
+                          <Switch checked={!!formData.use_google_form_org} onCheckedChange={(c) => setFormData((p: any) => ({ ...p, use_google_form_org: c }))} />
+                        </div>
+                      </div>
+                      <div className="p-5 space-y-3">
+                        <Label className="text-gray-300 text-sm block">Google Form URL for Organization</Label>
+                        <div className="relative">
+                          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                          <input type="url" placeholder="https://docs.google.com/forms/..." value={formData.google_form_org || ''} onChange={(e) => setFormData((p: any) => ({ ...p, google_form_org: e.target.value }))} className="w-full pl-9 pr-4 py-2.5 bg-[#1a1a2e]/50 border border-emerald-800/40 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-emerald-500/50" />
+                        </div>
+                        {formData.google_form_org && <a href={formData.google_form_org} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:underline"><ExternalLink className="w-3 h-3" /> Preview link</a>}
+                        {formData.use_google_form_org && !formData.google_form_org && <p className="text-yellow-500 text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block" />Redirect is ON but no link is set.</p>}
+                        {formData.use_google_form_org && formData.google_form_org && <p className="text-emerald-400 text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />Organization registrants will be redirected to this Google Form.</p>}
+                      </div>
+                    </div>
+
+                    <div className="border border-violet-800/40 rounded-xl bg-violet-950/10 overflow-hidden">
+                      <div className="bg-violet-900/20 px-5 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">🎓</span>
+                          <h4 className="font-bold text-violet-300">University Registration</h4>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs">{formData.use_google_form_uni ? <span className="text-red-400 font-semibold">Redirecting to Google Form</span> : <span className="text-green-400 font-semibold">Built-in Form Active</span>}</span>
+                          <Switch checked={!!formData.use_google_form_uni} onCheckedChange={(c) => setFormData((p: any) => ({ ...p, use_google_form_uni: c }))} />
+                        </div>
+                      </div>
+                      <div className="p-5 space-y-3">
+                        <Label className="text-gray-300 text-sm block">Google Form URL for University</Label>
+                        <div className="relative">
+                          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                          <input type="url" placeholder="https://docs.google.com/forms/..." value={formData.google_form_uni || ''} onChange={(e) => setFormData((p: any) => ({ ...p, google_form_uni: e.target.value }))} className="w-full pl-9 pr-4 py-2.5 bg-[#1a1a2e]/50 border border-violet-800/40 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50" />
+                        </div>
+                        {formData.google_form_uni && <a href={formData.google_form_uni} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-violet-400 hover:underline"><ExternalLink className="w-3 h-3" /> Preview link</a>}
+                        {formData.use_google_form_uni && !formData.google_form_uni && <p className="text-yellow-500 text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block" />Redirect is ON but no link is set.</p>}
+                        {formData.use_google_form_uni && formData.google_form_uni && <p className="text-violet-400 text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-violet-400 inline-block" />University registrants will be redirected to this Google Form.</p>}
+                      </div>
+                    </div>
+
+                    <div className="bg-[#1a1a2e]/50 rounded-xl border border-blue-900/20 p-4 text-xs space-y-1.5">
+                      <p className="text-gray-300 font-semibold text-sm mb-2">⚡ How this works</p>
+                      <p className="text-gray-500">• Toggle <span className="text-green-400 font-semibold">OFF</span> → Built-in registration form is shown (default).</p>
+                      <p className="text-gray-500">• Toggle <span className="text-red-400 font-semibold">ON</span> → Registrant is immediately redirected to your Google Form when they select their category.</p>
+                      <p className="text-gray-500">• Org and University can each have separate links — both can be active at the same time.</p>
+                      <p className="text-gray-500">• Always click <span className="text-emerald-400 font-semibold">Save Configuration</span> after making changes.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -532,6 +595,7 @@ export const RegistrationSubmissions = () => {
                 <Button variant="ghost" onClick={() => setActiveFormTab('payment')} className={`text-sm ${activeFormTab === 'payment' ? 'bg-blue-900/40 text-blue-400' : 'text-gray-400'}`}><CreditCard className="w-4 h-4 mr-2" />Payment Logic</Button>
                 <Button variant="ghost" onClick={() => setActiveFormTab('participation')} className={`text-sm ${activeFormTab === 'participation' ? 'bg-blue-900/40 text-blue-400' : 'text-gray-400'}`}><UserPlus className="w-4 h-4 mr-2" />Team Sizes</Button>
                 <Button variant="ghost" onClick={() => setActiveFormTab('fields')} className={`text-sm ${activeFormTab === 'fields' ? 'bg-blue-900/40 text-blue-400' : 'text-gray-400'}`}><FileText className="w-4 h-4 mr-2" />Form Fields</Button>
+                <Button variant="ghost" onClick={() => setActiveFormTab('google_form')} className={`text-sm flex items-center gap-1 ${activeFormTab === 'google_form' ? 'bg-violet-900/40 text-violet-400' : 'text-gray-400'}`}><Link2 className="w-4 h-4 mr-1" />Google Forms {(formData.use_google_form_org || formData.use_google_form_uni) && <span className="w-1.5 h-1.5 rounded-full bg-violet-400 ml-1" />}</Button>
               </div>
 
               <div className="min-h-[300px]">
@@ -743,6 +807,69 @@ export const RegistrationSubmissions = () => {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {activeFormTab === 'google_form' && (
+                  <div className="space-y-6 max-w-2xl">
+                    <p className="text-gray-400 text-sm leading-relaxed">
+                      Set separate Google Form links for each registration category.
+                      Toggle <span className="text-red-400 font-semibold">ON</span> to redirect registrants directly to the Google Form, or keep <span className="text-green-400 font-semibold">OFF</span> to use the built-in form.
+                    </p>
+
+                    <div className="border border-emerald-800/40 rounded-xl bg-emerald-950/10 overflow-hidden">
+                      <div className="bg-emerald-900/20 px-5 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">🏢</span>
+                          <h4 className="font-bold text-emerald-300">Organization Registration</h4>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs">{formData.use_google_form_org ? <span className="text-red-400 font-semibold">Redirecting to Google Form</span> : <span className="text-green-400 font-semibold">Built-in Form Active</span>}</span>
+                          <Switch checked={!!formData.use_google_form_org} onCheckedChange={(c) => setFormData((p: any) => ({ ...p, use_google_form_org: c }))} />
+                        </div>
+                      </div>
+                      <div className="p-5 space-y-3">
+                        <Label className="text-gray-300 text-sm block">Google Form URL for Organization</Label>
+                        <div className="relative">
+                          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                          <input type="url" placeholder="https://docs.google.com/forms/..." value={formData.google_form_org || ''} onChange={(e) => setFormData((p: any) => ({ ...p, google_form_org: e.target.value }))} className="w-full pl-9 pr-4 py-2.5 bg-[#1a1a2e]/50 border border-emerald-800/40 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-emerald-500/50" />
+                        </div>
+                        {formData.google_form_org && <a href={formData.google_form_org} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:underline"><ExternalLink className="w-3 h-3" /> Preview link</a>}
+                        {formData.use_google_form_org && !formData.google_form_org && <p className="text-yellow-500 text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block" />Redirect is ON but no link is set.</p>}
+                        {formData.use_google_form_org && formData.google_form_org && <p className="text-emerald-400 text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />Organization registrants will be redirected to this Google Form.</p>}
+                      </div>
+                    </div>
+
+                    <div className="border border-violet-800/40 rounded-xl bg-violet-950/10 overflow-hidden">
+                      <div className="bg-violet-900/20 px-5 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">🎓</span>
+                          <h4 className="font-bold text-violet-300">University Registration</h4>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs">{formData.use_google_form_uni ? <span className="text-red-400 font-semibold">Redirecting to Google Form</span> : <span className="text-green-400 font-semibold">Built-in Form Active</span>}</span>
+                          <Switch checked={!!formData.use_google_form_uni} onCheckedChange={(c) => setFormData((p: any) => ({ ...p, use_google_form_uni: c }))} />
+                        </div>
+                      </div>
+                      <div className="p-5 space-y-3">
+                        <Label className="text-gray-300 text-sm block">Google Form URL for University</Label>
+                        <div className="relative">
+                          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                          <input type="url" placeholder="https://docs.google.com/forms/..." value={formData.google_form_uni || ''} onChange={(e) => setFormData((p: any) => ({ ...p, google_form_uni: e.target.value }))} className="w-full pl-9 pr-4 py-2.5 bg-[#1a1a2e]/50 border border-violet-800/40 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50" />
+                        </div>
+                        {formData.google_form_uni && <a href={formData.google_form_uni} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-violet-400 hover:underline"><ExternalLink className="w-3 h-3" /> Preview link</a>}
+                        {formData.use_google_form_uni && !formData.google_form_uni && <p className="text-yellow-500 text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block" />Redirect is ON but no link is set.</p>}
+                        {formData.use_google_form_uni && formData.google_form_uni && <p className="text-violet-400 text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-violet-400 inline-block" />University registrants will be redirected to this Google Form.</p>}
+                      </div>
+                    </div>
+
+                    <div className="bg-[#1a1a2e]/50 rounded-xl border border-blue-900/20 p-4 text-xs space-y-1.5">
+                      <p className="text-gray-300 font-semibold text-sm mb-2">⚡ How this works</p>
+                      <p className="text-gray-500">• Toggle <span className="text-green-400 font-semibold">OFF</span> → Built-in registration form is shown (default).</p>
+                      <p className="text-gray-500">• Toggle <span className="text-red-400 font-semibold">ON</span> → Registrant is immediately redirected to your Google Form when they select their category.</p>
+                      <p className="text-gray-500">• Org and University can each have separate links — both can be active at the same time.</p>
+                      <p className="text-gray-500">• Always click <span className="text-emerald-400 font-semibold">Save Configuration</span> after making changes.</p>
+                    </div>
                   </div>
                 )}
               </div>

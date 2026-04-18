@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { deleteEvent, fetchEvents, saveEvent } from "@/lib/api";
+import { slugify } from "@/lib/slugify";
 
 interface FormField {
   id: string;

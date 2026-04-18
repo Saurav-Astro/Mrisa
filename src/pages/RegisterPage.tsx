@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { submitRegistration, fetchEvents, fetchRegistrationCount } from "@/lib/api";
+import { slugify, isObjectId } from "@/lib/slugify";
 import { Scene3D } from "@/components/Scene3D";
 import ReactMarkdown from 'react-markdown';
 
@@ -49,12 +50,14 @@ const RegisterPage = () => {
       setIsLoading(true);
       try {
         const events = await fetchEvents();
-        const ev = events.find((e: any) => e.id === eventId);
+        const ev = events.find((e: any) =>
+          isObjectId(eventId!) ? e.id === eventId : slugify(e.title) === eventId
+        );
         if (ev) {
           setEvent(ev);
           const minMembers = ev.participation_type === "team" ? Number(ev.team_min_members) || 1 : 1;
           setMembersData(Array.from({ length: minMembers }, () => ({})));
-          fetchRegistrationCount(eventId!).then(setLiveCount);
+          fetchRegistrationCount(ev.id).then(setLiveCount);
         }
       } catch (error) {
         toast({ title: "Error", description: "Failed to load event details", variant: "destructive" });
@@ -98,6 +101,20 @@ const RegisterPage = () => {
   };
 
   const handleProceed = (type: RegType) => {
+    // If Google Form redirect is enabled for this category, open it directly
+    if (type === "organization" && event?.use_google_form_org && event?.google_form_org) {
+      window.open(event.google_form_org, "_blank");
+      return;
+    }
+    if (type === "university" && event?.use_google_form_uni && event?.google_form_uni) {
+      window.open(event.google_form_uni, "_blank");
+      return;
+    }
+    // No-category events: check org form as default fallback
+    if (type === null && event?.use_google_form_org && event?.google_form_org) {
+      window.open(event.google_form_org, "_blank");
+      return;
+    }
     setRegType(type);
     setStep("form");
   };
@@ -390,32 +407,38 @@ const RegisterPage = () => {
                   </div>
                 </div>
 
-                {needsTypeSelection ? (
-                  <div className="bg-[#121224]/80 backdrop-blur-md rounded-2xl border border-blue-900/40 p-6 sm:p-8">
-                    <h2 className="text-xl font-bold text-white mb-2">Choose Your Registration Type</h2>
-                    <p className="text-gray-500 text-sm mb-6">Select the category that best describes you to proceed with registration.</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {hasOrgFields && (
-                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleProceed("organization")} className="group relative bg-[#1a1a2e]/50 border border-blue-900/40 hover:border-emerald-500/50 rounded-2xl p-6 text-left transition-all hover:shadow-[0_0_30px_rgba(16,185,129,0.1)]">
-                          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors"><Building2 className="w-6 h-6 text-emerald-400" /></div>
-                          <h3 className="text-lg font-bold text-white mb-1 group-hover:text-emerald-400 transition-colors">Organization</h3>
-                          <p className="text-gray-500 text-xs leading-relaxed">For working professionals and organization representatives.</p>
-                          <ArrowRight className="w-5 h-5 text-gray-600 group-hover:text-emerald-400 absolute top-6 right-6 transition-colors" />
-                        </motion.button>
+                <div className="bg-[#121224]/80 backdrop-blur-md rounded-2xl border border-blue-900/40 p-6 sm:p-8">
+                  <h2 className="text-xl font-bold text-white mb-2">Choose Your Registration Type</h2>
+                  <p className="text-gray-500 text-sm mb-6">Select the category that best describes you to proceed with registration.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      onClick={() => handleProceed("organization")}
+                      className="group relative bg-[#1a1a2e]/50 border border-blue-900/40 hover:border-emerald-500/50 rounded-2xl p-6 text-left transition-all hover:shadow-[0_0_30px_rgba(16,185,129,0.1)]"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors"><Building2 className="w-6 h-6 text-emerald-400" /></div>
+                      <h3 className="text-lg font-bold text-white mb-1 group-hover:text-emerald-400 transition-colors">Organization</h3>
+                      <p className="text-gray-500 text-xs leading-relaxed">For working professionals and organization representatives.</p>
+                      {event && event.use_google_form_org && event.google_form_org && (
+                        <span className="inline-flex items-center gap-1 mt-3 text-[10px] text-emerald-500 bg-emerald-900/20 border border-emerald-500/20 px-2 py-0.5 rounded-full">Opens Google Form</span>
                       )}
-                      {hasUniFields && (
-                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => handleProceed("university")} className="group relative bg-[#1a1a2e]/50 border border-blue-900/40 hover:border-violet-500/50 rounded-2xl p-6 text-left transition-all hover:shadow-[0_0_30px_rgba(139,92,246,0.1)]">
-                          <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center mb-4 group-hover:bg-violet-500/20 transition-colors"><GraduationCap className="w-6 h-6 text-violet-400" /></div>
-                          <h3 className="text-lg font-bold text-white mb-1 group-hover:text-violet-400 transition-colors">University</h3>
-                          <p className="text-gray-500 text-xs leading-relaxed">For students and university representatives.</p>
-                          <ArrowRight className="w-5 h-5 text-gray-600 group-hover:text-violet-400 absolute top-6 right-6 transition-colors" />
-                        </motion.button>
+                      <ArrowRight className="w-5 h-5 text-gray-600 group-hover:text-emerald-400 absolute top-6 right-6 transition-colors" />
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      onClick={() => handleProceed("university")}
+                      className="group relative bg-[#1a1a2e]/50 border border-blue-900/40 hover:border-violet-500/50 rounded-2xl p-6 text-left transition-all hover:shadow-[0_0_30px_rgba(139,92,246,0.1)]"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center mb-4 group-hover:bg-violet-500/20 transition-colors"><GraduationCap className="w-6 h-6 text-violet-400" /></div>
+                      <h3 className="text-lg font-bold text-white mb-1 group-hover:text-violet-400 transition-colors">University</h3>
+                      <p className="text-gray-500 text-xs leading-relaxed">For students and university representatives.</p>
+                      {event && event.use_google_form_uni && event.google_form_uni && (
+                        <span className="inline-flex items-center gap-1 mt-3 text-[10px] text-violet-500 bg-violet-900/20 border border-violet-500/20 px-2 py-0.5 rounded-full">Opens Google Form</span>
                       )}
-                    </div>
+                      <ArrowRight className="w-5 h-5 text-gray-600 group-hover:text-violet-400 absolute top-6 right-6 transition-colors" />
+                    </motion.button>
                   </div>
-                ) : (
-                  <div className="flex justify-center"><Button onClick={() => handleProceed(null)} className="bg-green-500 text-black hover:bg-green-400 h-12 px-10 text-base font-bold">Proceed to Registration <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
-                )}
+                </div>
               </motion.div>
             )}
 
