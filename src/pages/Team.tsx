@@ -111,7 +111,7 @@ const manualTeam: TeamMember[] = [
       name: 'Om Pushpraj Patel',
       role: 'General Secretary',
       bio: generateBio('General Secretary', 'Om Pushpraj Patel'),
-      image_url: null,
+      image_url: '/team/Om_Pushpraj.jpeg',
       email: 'ompushpraj2004@gmail.com'
     },
     {
@@ -210,7 +210,7 @@ const manualTeam: TeamMember[] = [
       name: 'Abhijit kharol',
       role: 'Cryptography Head',
       bio: generateBio('Cryptography Head', 'Abhijit kharol'),
-      image_url: null,
+      image_url: '/team/Abhijeet_Kharol.jpeg',
       email: 'abhijeetkharol7489@gmail.com'
     },
     {
