@@ -25,7 +25,7 @@ const partners: Partner[] = [
   },
   {
     id: "p2",
-    name: "BSides Delhi",
+    name: "BSides Faridabad",
     description: "A community-driven information security conference in Delhi, fostering knowledge sharing and collaboration among cybersecurity enthusiasts.",
     logo_url: "/Comunity_partner_and_sponser/Bsides.png",
     website_url: "https://bsidesdelhi.in",
@@ -35,7 +35,7 @@ const partners: Partner[] = [
   },
   {
     id: "p3",
-    name: "Cyber Surce",
+    name: "Cyber Surge JEMTEC",
     description: "A cybersecurity-focused organization dedicated to cultivating the next generation of security researchers and ethical hackers.",
     logo_url: "/Comunity_partner_and_sponser/CS.png",
     category: "Community Partner",
