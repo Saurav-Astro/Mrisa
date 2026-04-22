@@ -113,7 +113,7 @@ const EventCard = ({ event }: { event: CTFEvent }) => {
           </div>
           
           {/* Live registration count - hidden if admin toggled off */}
-          {!event.hide_registration_count && (
+          {!event.hide_registration_count && liveCount !== null && liveCount > 50 && (
             <div className="flex items-center gap-2 text-xs">
               <Users className="h-3.5 w-3.5 flex-shrink-0 text-purple-400/70" />
               {liveCount === null ? (

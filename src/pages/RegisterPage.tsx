@@ -402,7 +402,7 @@ const RegisterPage = () => {
                     <div className="flex flex-wrap gap-2 mt-4">
                       {isTeam && <span className="bg-blue-900/20 px-3 py-1.5 rounded-full border border-blue-500/30 text-blue-400 flex items-center gap-1.5 text-xs"><Users className="w-3 h-3" /> Team ({numTeamMembers}-{maxTeamMembers} members)</span>}
                       {event.registration_type === "paid" && <span className="bg-yellow-900/20 px-3 py-1.5 rounded-full border border-yellow-500/30 text-yellow-400 flex items-center gap-1.5 text-xs"><CreditCard className="w-3 h-3" /> Paid Event</span>}
-                      {!event.hide_registration_count && <span className="bg-green-900/20 px-3 py-1.5 rounded-full border border-green-500/30 text-green-400 text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />{liveCount === null ? '...' : liveCount} registered {event.participation_type==="team"?`team${liveCount!==1?"s":""}`:"solo"}</span>}
+                      {!event.hide_registration_count && liveCount !== null && liveCount > 50 && <span className="bg-green-900/20 px-3 py-1.5 rounded-full border border-green-500/30 text-green-400 text-xs flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />{liveCount === null ? '...' : liveCount} registered {event.participation_type==="team"?`team${liveCount!==1?"s":""}`:"solo"}</span>}
                     </div>
                   </div>
                 </div>
