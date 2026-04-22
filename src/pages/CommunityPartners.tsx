@@ -67,7 +67,7 @@ const partners: Partner[] = [
     name: "0x0 PRI4T3S",
     description: "A pioneering cybersecurity firm focused on offensive and defensive security solutions, pushing boundaries in the realm of digital protection.",
     logo_url: "/Comunity_partner_and_sponser/OXO.png",
-    category: "Sponsor",
+    category: "Community Partner",
     tags: ["Offensive Security", "Defensive Security"],
     logoSize: "large" as const,
   },
