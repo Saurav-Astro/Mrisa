@@ -202,8 +202,9 @@ const manualTeam: TeamMember[] = [
       name: 'Aadarsh',
       role: 'IoT Security Head',
       bio: generateBio('IoT Security Head', 'Aadarsh'),
-      image_url: null,
-      email: 'aadarsh.bonthula@gmail.com'
+      image_url: '/team/Aadarsh.jpeg',
+      email: 'aadarsh.bonthula@gmail.com',
+      linkedin_url: 'https://www.linkedin.com/in/aadarsh-bonthula-2bb755325'
     },
     {
       id: 't13',
