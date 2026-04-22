@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { motion } from "framer-motion";
 // --- UPDATED: Added Instagram and Linkedin icons ---
 import { Github, Linkedin, Mail, Code, Shield, Zap, Instagram } from "lucide-react";
@@ -95,7 +95,8 @@ const manualTeam: TeamMember[] = [
       role: 'President',
       bio: generateBio('President', 'Shivansh Saxena'),
       image_url: '/photos/Shivansh_Saxena.jpg',
-      email: 'saxenashivansh51@gmail.com'
+      email: 'saxenashivansh51@gmail.com',
+      linkedin_url: 'https://www.linkedin.com/in/shivanshsaxena01/'
     },
     {
       id: 't2',
@@ -118,8 +119,10 @@ const manualTeam: TeamMember[] = [
       name: 'Bidhu Mitra',
       role: 'Joint Secretary',
       bio: generateBio('Joint Secretary', 'Bidhu Mitra'),
-      image_url: null,
-      email: 'bidhumitra2005@gmail.com'
+      image_url: '/team/Bidhu_Mitra - Bidhu Mitra.jpg',
+      email: 'bidhumitra2005@gmail.com',
+      github_url: 'https://github.com/BidhuMitra1',
+      linkedin_url: 'https://www.linkedin.com/in/bidhumitra/'
     },
     // Heads
     {
@@ -127,7 +130,7 @@ const manualTeam: TeamMember[] = [
       name: 'Navya',
       role: 'Head of Web Security & UI/UX',
       bio: generateBio('Head of Web Security & UI/UX', 'Navya'),
-      image_url: null,
+      image_url: '/team/Navya.jpg.jpeg',
       email: 'navyapandey841@gmail.com'
     },
     {
@@ -148,11 +151,23 @@ const manualTeam: TeamMember[] = [
     },
     {
       id: 't8',
-      name: 'Subodh',
+      name: 'Subodh sharma',
       role: 'Head of Operations',
-      bio: generateBio('Head of Operations', 'Subodh'),
-      image_url: null,
-      email: 'subodhsharma8008@gmail.com'
+      bio: generateBio('Head of Operations', 'Subodh sharma'),
+      image_url: '/team/Subodh sharma - Subodh Sharma.png',
+      email: 'subodhsharma8008@gmail.com',
+      github_url: 'https://github.com/subodh0006',
+      linkedin_url: 'https://www.linkedin.com/in/subodh06?utm_source=share_via&utm_content=profile&utm_medium=member_android'
+    },
+    {
+      id: 't20',
+      name: 'Mayank Rath',
+      role: 'Management Head',
+      bio: generateBio('Head of Operations', 'Mayank Rath'),
+      image_url: '/team/Mayank_Rath - Mayank Rath.png',
+      email: 'mayankrath007@gmail.com',
+      github_url: 'https://github.com/mayank1916',
+      linkedin_url: 'https://www.linkedin.com/in/mayank-rath-142ab1331/'
     },
     // Leads
     {
@@ -177,8 +192,10 @@ const manualTeam: TeamMember[] = [
       name: 'Sandip Biswa',
       role: 'Network Security Lead',
       bio: generateBio('Network Security Lead', 'Sandip Biswa'),
-      image_url: null,
-      email: 'sandipbiswa2000@gmail.com'
+      image_url: '/team/Sandip_Biswa - Sandip Biswa.png',
+      email: 'sandipbiswa2000@gmail.com',
+      github_url: 'https://github.com/b1swa25',
+      linkedin_url: 'https://www.linkedin.com/in/cyber-monk-636b85142/'
     },
     {
       id: 't12',
@@ -201,8 +218,10 @@ const manualTeam: TeamMember[] = [
       name: 'Jigyashu Bhatt',
       role: 'Offensive Security Lead',
       bio: generateBio('Offensive Security Lead', 'Jigyashu Bhatt'),
-      image_url: null,
-      email: 'jishubhatt07@gmail.com'
+      image_url: '/team/Jigyashu.jpg',
+      email: 'jishubhatt07@gmail.com',
+      github_url: 'https://github.com/jigyashu-bhatt',
+      linkedin_url: 'https://www.linkedin.com/in/jigyashu-bhatt?utm_source=share_via&utm_content=profile&utm_medium=member_android'
     },
     {
       id: 't15',
@@ -218,8 +237,10 @@ const manualTeam: TeamMember[] = [
       name: 'PRIYANSHU KUMAR',
       role: 'Event Management',
       bio: generateBio('Event Management', 'PRIYANSHU KUMAR'),
-      image_url: null,
-      email: 'raopriyanshu07@gmail.com'
+      image_url: '/team/Priyanshu_Kumar.png',
+      email: 'raopriyanshu07@gmail.com',
+      github_url: 'https://github.com/raopriyanshu90',
+      linkedin_url: 'https://www.linkedin.com/in/priyanshu-kumar-8a9b23310/'
     },
     {
       id: 't17',
@@ -235,8 +256,10 @@ const manualTeam: TeamMember[] = [
       name: 'Dev Kaushik',
       role: 'Media Coordinator',
       bio: generateBio('Media Coordinator', 'Dev Kaushik'),
-      image_url: null,
-      email: 'dav02032006@gmail.com'
+      image_url: '/team/Dev_Kaushik.jpg',
+      email: 'dav02032006@gmail.com',
+      github_url: 'https://github.com/deox00',
+      linkedin_url: 'https://www.linkedin.com/in/dev-kaushik-607784337/'
     },
     {
       id: 't19',
@@ -245,6 +268,16 @@ const manualTeam: TeamMember[] = [
       bio: generateBio('Media Coordinator', 'Khushi'),
       image_url: null,
       email: 'k.khushii2711@gmail.com'
+    },
+    {
+      id: 't21',
+      name: 'Komal Kumari',
+      role: 'Core Team Member',
+      bio: generateBio('Core Member', 'Komal Kumari'),
+      image_url: '/team/komal - Komal Kumari.png',
+      email: 'kk2796903@gmail.com',
+      github_url: 'https://github.com/KomalKumari280',
+      linkedin_url: 'https://www.linkedin.com/in/komal-kumari-14b01731b/'
     }
 ];
 
