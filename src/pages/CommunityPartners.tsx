@@ -56,7 +56,7 @@ const partners: Partner[] = [
   {
     id: "p5",
     name: "IDevSec",
-    description: "A collaborative platform integrating development and security practices, championing DevSecOps principles and secure coding culture.",
+    description: "A cybersecurity-driven organization focused on building innovative security tools and strengthening global digital defense.",
     logo_url: "/Comunity_partner_and_sponser/idevsec.png",
     category: "Community Partner",
     tags: ["DevSecOps", "Secure Coding", "Community"],
@@ -74,7 +74,7 @@ const partners: Partner[] = [
   {
     id: "p7",
     name: "SigintOps",
-    description: "Specialists in signals intelligence and operational security, bringing real-world intelligence community expertise to the cybersecurity space.",
+    description: "A competitive CTF league dedicated to sharpening cybersecurity skills and fostering the next generation of ethical hackers.",
     logo_url: "/Comunity_partner_and_sponser/sigintops.png",
     category: "Community Partner",
     tags: ["SIGINT", "OSINT", "Intelligence"],
