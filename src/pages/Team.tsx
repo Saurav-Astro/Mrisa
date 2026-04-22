@@ -131,7 +131,8 @@ const manualTeam: TeamMember[] = [
       role: 'Head of Web Security & UI/UX',
       bio: generateBio('Head of Web Security & UI/UX', 'Navya'),
       image_url: '/team/Navya.jpeg',
-      email: 'navyapandey841@gmail.com'
+      email: 'navyapandey841@gmail.com',
+      linkedin_url: 'https://www.linkedin.com/in/navya-pandey-201064294?utm_source=share_via&utm_content=profile&utm_medium=member_android'
     },
     {
       id: 't6',
