@@ -11,6 +11,8 @@ interface Partner {
   website_url?: string;
   category: "Community Partner" | "Sponsor";
   tags?: string[];
+  logoSize?: "small" | "large";
+  logoFit?: "cover" | "contain";
 }
 
 const partners: Partner[] = [
@@ -22,6 +24,7 @@ const partners: Partner[] = [
     website_url: "https://www.apisecuniversity.com",
     category: "Sponsor",
     tags: ["API Security", "Training", "Certifications"],
+    logoFit: "contain" as const,
   },
   {
     id: "p2",
@@ -140,7 +143,7 @@ const PartnerCard = ({ partner, index }: { partner: Partner; index: number }) =>
               <img
                 src={partner.logo_url}
                 alt={`${partner.name} logo`}
-                className="w-full h-full object-cover filter brightness-90 group-hover:brightness-110 transition-all duration-300"
+                className={"w-full h-full filter brightness-90 group-hover:brightness-110 transition-all duration-300 " + (partner.logoFit === "contain" ? "object-contain" : "object-cover")}
                 onError={() => setImageError(true)}
               />
             </motion.div>
