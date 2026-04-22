@@ -184,7 +184,7 @@ const manualTeam: TeamMember[] = [
       name: 'Anuj Rawat',
       role: 'OS Security Lead',
       bio: generateBio('OS Security Lead', 'Anuj Rawat'),
-      image_url: null,
+      image_url: '/team/Anuj.jpeg',
       email: 'anujrwt08@gmail.com'
     },
     {
@@ -228,7 +228,7 @@ const manualTeam: TeamMember[] = [
       name: 'Nisha',
       role: 'Digital Forensics Lead',
       bio: generateBio('Digital Forensics Lead', 'Nisha'),
-      image_url: null,
+      image_url: '/team/Nisha.jpeg',
       email: 'kumarinihu234@gmail.com'
     },
     // Event Management
