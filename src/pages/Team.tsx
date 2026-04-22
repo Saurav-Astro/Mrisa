@@ -247,7 +247,7 @@ const manualTeam: TeamMember[] = [
       name: 'Sneha Khurana',
       role: 'Event Lead',
       bio: generateBio('Event Lead', 'Sneha Khurana'),
-      image_url: null,
+      image_url: '/team/Sneha_Khurana.jpeg',
       email: 'khuranask131005@gmail.com'
     },
     // Media Coordinators
