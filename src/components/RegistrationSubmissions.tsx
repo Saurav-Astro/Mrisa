@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Trash2, ExternalLink, Download, Search, CheckCircle, CreditCard, UserPlus, FileText, Save, Edit3, X, Radio, Lock, Unlock, Link2 } from "lucide-react";
@@ -777,6 +777,18 @@ export const RegistrationSubmissions = () => {
                         </div>
                       </motion.div>
                     )}
+
+                    {/* Hide Registration Count toggle */}
+                    <div className="flex items-center space-x-2 border border-blue-900/40 p-4 rounded-xl bg-[#1a1a2e]/50">
+                      <div className="flex-1">
+                        <Label className="text-white text-base block">Hide Registration Count?</Label>
+                        <p className="text-gray-400 text-xs mt-0.5">When ON, the registered count badge is hidden from the public Events &amp; Registration pages.</p>
+                      </div>
+                      <Switch
+                        checked={!!formData.hide_registration_count}
+                        onCheckedChange={(c) => setFormData({ ...formData, hide_registration_count: c })}
+                      />
+                    </div>
                   </div>
                 )}
 
