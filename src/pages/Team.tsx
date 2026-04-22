@@ -307,7 +307,7 @@ const TeamCard = ({ member, index }: { member: TeamMember, index: number }) => {
       className="p-4 sm:p-6 md:p-8 group relative overflow-hidden bg-[#121224]/70 backdrop-blur-md rounded-lg sm:rounded-xl border border-blue-900/40"
       style={{ perspective: "1000px" }}
     >
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         <div className="relative mb-4 sm:mb-6 flex justify-center">
             <div className="relative">
                 <div className="w-24 sm:w-28 md:w-32 h-24 sm:h-28 md:h-32 rounded-full overflow-hidden border-3 sm:border-4 border-primary/30 group-hover:border-primary/60 transition-colors duration-300">
@@ -319,7 +319,7 @@ const TeamCard = ({ member, index }: { member: TeamMember, index: number }) => {
         </div>
         <div className="text-center mb-3 sm:mb-4"><h3 className="text-lg sm:text-xl md:text-2xl font-sans font-bold text-white mb-1 sm:mb-2 group-hover:text-green-400 transition-colors line-clamp-2">{member.name}</h3><p className="text-xs sm:text-sm font-mono uppercase tracking-wide text-green-500/80 line-clamp-1">{member.role}</p></div>
         <p className="text-gray-400 text-xs sm:text-sm md:text-base text-center mb-4 sm:mb-6 leading-relaxed line-clamp-3 sm:line-clamp-none">{member.bio}</p>
-        <div className="flex justify-center gap-2 sm:gap-3 md:gap-4 h-8 sm:h-9 md:h-10 items-center opacity-70 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="relative z-20 flex justify-center gap-2 sm:gap-3 md:gap-4 h-8 sm:h-9 md:h-10 items-center opacity-70 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             {socialIcons.map(({ Component, name }, idx) => {
               let url;
               switch (name) {
