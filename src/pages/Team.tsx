@@ -130,7 +130,7 @@ const manualTeam: TeamMember[] = [
       name: 'Navya',
       role: 'Head of Web Security & UI/UX',
       bio: generateBio('Head of Web Security & UI/UX', 'Navya'),
-      image_url: '/team/Navya.jpg.jpeg',
+      image_url: '/team/Navya.jpeg',
       email: 'navyapandey841@gmail.com'
     },
     {
