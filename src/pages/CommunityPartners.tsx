@@ -31,6 +31,7 @@ const partners: Partner[] = [
     website_url: "https://bsidesdelhi.in",
     category: "Community Partner",
     tags: ["Conference", "InfoSec", "Community"],
+    logoSize: "large" as const,
   },
   {
     id: "p3",
@@ -39,6 +40,7 @@ const partners: Partner[] = [
     logo_url: "/Comunity_partner_and_sponser/CS.png",
     category: "Community Partner",
     tags: ["Research", "Ethical Hacking", "Education"],
+    logoSize: "large" as const,
   },
   {
     id: "p4",
@@ -55,6 +57,7 @@ const partners: Partner[] = [
     logo_url: "/Comunity_partner_and_sponser/idevsec.png",
     category: "Community Partner",
     tags: ["DevSecOps", "Secure Coding", "Community"],
+    logoSize: "large" as const,
   },
   {
     id: "p6",
@@ -63,6 +66,7 @@ const partners: Partner[] = [
     logo_url: "/Comunity_partner_and_sponser/OXO.png",
     category: "Sponsor",
     tags: ["Offensive Security", "Defensive Security"],
+    logoSize: "large" as const,
   },
   {
     id: "p7",
@@ -71,6 +75,7 @@ const partners: Partner[] = [
     logo_url: "/Comunity_partner_and_sponser/sigintops.png",
     category: "Community Partner",
     tags: ["SIGINT", "OSINT", "Intelligence"],
+    logoSize: "large" as const,
   },
   {
     id: "p8",
@@ -131,7 +136,7 @@ const PartnerCard = ({ partner, index }: { partner: Partner; index: number }) =>
               alt={`${partner.name} logo`}
               whileHover={{ scale: 1.08 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="max-h-24 max-w-[70%] object-contain filter brightness-90 group-hover:brightness-125 drop-shadow-lg transition-all duration-300"
+              className={`${partner.logoSize === "large" ? "max-h-36 max-w-[85%]" : "max-h-24 max-w-[70%]"} object-contain filter brightness-90 group-hover:brightness-125 drop-shadow-lg transition-all duration-300`}
               style={{ filter: "drop-shadow(0 0 0px transparent)" }}
               onError={() => setImageError(true)}
             />
