@@ -129,17 +129,21 @@ const PartnerCard = ({ partner, index }: { partner: Partner; index: number }) =>
           style={{ backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)", backgroundSize: "16px 16px" }} />
 
         {/* Logo image */}
-        <div className="relative z-10 flex items-center justify-center">
+        {/* Logo image */}
+        <div className="relative z-10 flex items-center justify-center w-full">
           {!imageError ? (
-            <motion.img
-              src={partner.logo_url}
-              alt={`${partner.name} logo`}
-              whileHover={{ scale: 1.08 }}
+            <motion.div
+              className={`${partner.logoSize === "large" ? "w-44 h-32" : "w-36 h-24"} overflow-hidden rounded-xl`}
+              whileHover={{ scale: 1.06 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className={`${partner.logoSize === "large" ? "max-h-36 max-w-[85%]" : "max-h-24 max-w-[70%]"} object-contain filter brightness-90 group-hover:brightness-125 drop-shadow-lg transition-all duration-300`}
-              style={{ filter: "drop-shadow(0 0 0px transparent)" }}
-              onError={() => setImageError(true)}
-            />
+            >
+              <img
+                src={partner.logo_url}
+                alt={`${partner.name} logo`}
+                className="w-full h-full object-cover filter brightness-90 group-hover:brightness-110 transition-all duration-300"
+                onError={() => setImageError(true)}
+              />
+            </motion.div>
           ) : (
             <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl flex items-center justify-center border border-primary/20">
               <Globe className="h-10 w-10 text-primary/60" />
