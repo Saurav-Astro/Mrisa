@@ -50,7 +50,7 @@ const partners: Partner[] = [
     name: "DG Sentinels",
     description: "An elite cyber-defense unit bringing cutting-edge threat intelligence and digital guardian capabilities to the security ecosystem.",
     logo_url: "/Comunity_partner_and_sponser/DG_Sentinels.png",
-    category: "Sponsor",
+    category: "Community Partner",
     tags: ["Threat Intel", "Defense", "CTF"],
   },
   {
