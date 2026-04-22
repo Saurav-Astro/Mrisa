@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
@@ -9,7 +9,7 @@ const navItems = [
   { href: "/events", label: "Events" },
   { href: "/winners", label: "Winners" },
   { href: "/team", label: "Team" },
-  { href: "/alumni", label: "Alumni" },
+  { href: "/community-partners", label: "Partners" },
   { href: "/contact", label: "Contact" }
 ];
 

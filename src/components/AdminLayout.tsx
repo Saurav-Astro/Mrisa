@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,7 +12,7 @@ import { Scene3D } from "@/components/Scene3D";
 interface AdminLayoutProps {
   children: React.ReactNode;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   headerActions?: React.ReactNode;
 }
 
@@ -23,7 +23,7 @@ const navItems = [
   { href: "/admin/registrations", label: "Registrations", icon: Users, color: "text-purple-400" },
 ];
 
-export const AdminLayout = ({ children, title, subtitle, headerActions }: AdminLayoutProps) => {
+export const AdminLayout = ({ children, title, subtitle = "", headerActions }: AdminLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();

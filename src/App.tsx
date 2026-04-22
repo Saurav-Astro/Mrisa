@@ -1,4 +1,4 @@
-import { Toaster } from "@/components/ui/toaster";
+﻿import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -12,7 +12,7 @@ import EventsPage from "./pages/EventsPage";
 import Winners from "./pages/Winners";
 import WinnersPage from "./pages/WinnersPage";
 import Team from "./pages/Team";
-import Alumni from "./pages/Alumni";
+import CommunityPartners from "./pages/CommunityPartners";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -38,7 +38,7 @@ const AppContent = () => {
         <Route path="/events" element={<Events />} />
         <Route path="/winners" element={<Winners />} />
         <Route path="/team" element={<Team />} />
-        <Route path="/alumni" element={<Alumni />} />
+        <Route path="/community-partners" element={<CommunityPartners />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route
