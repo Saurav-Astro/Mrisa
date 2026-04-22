@@ -75,11 +75,11 @@ const EventCard = ({ event }: { event: CTFEvent }) => {
       className={`relative bg-[#121224]/70 backdrop-blur-md rounded-xl border ${style.border} transition-shadow duration-300 hover:shadow-2xl hover:shadow-green-500/10 overflow-hidden flex flex-col`}
     >
       {/* Event Image */}
-      <div className="relative h-32 sm:h-40 overflow-hidden bg-[#0a0a14] flex-shrink-0">
+      <div className="relative h-48 sm:h-56 overflow-hidden bg-[#05050a] flex-shrink-0">
         <img
           src={event.image_url || "/default_image/meisa_default.jpeg"}
           alt={event.title}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-contain hover:scale-105 transition-transform duration-500"
           onError={(e) => { (e.target as HTMLImageElement).src = "/default_image/meisa_default.jpeg"; }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#121224] via-transparent to-transparent" />

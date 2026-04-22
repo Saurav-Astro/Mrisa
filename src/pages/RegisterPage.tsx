@@ -373,8 +373,8 @@ const RegisterPage = () => {
             {step === "details" && (
               <motion.div key="details" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
                 <div className="bg-[#121224]/80 backdrop-blur-md rounded-2xl border border-blue-900/40 overflow-hidden">
-                  <div className="h-48 sm:h-64 overflow-hidden bg-[#0a0a14] relative">
-                    <img src={event.image_url || "/default_image/meisa_default.jpeg"} alt={event.title} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "/default_image/meisa_default.jpeg"; }} />
+                  <div className="h-48 sm:h-64 overflow-hidden bg-[#05050a] relative flex items-center justify-center p-2">
+                    <img src={event.image_url || "/default_image/meisa_default.jpeg"} alt={event.title} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).src = "/default_image/meisa_default.jpeg"; }} />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#121224] via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
                       <span className={`text-[10px] uppercase tracking-wider px-3 py-1 rounded-full border mb-3 inline-block ${event.status === 'active' ? 'bg-green-500/10 border-green-500/30 text-green-400' : event.status === 'upcoming' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' : 'bg-gray-500/10 border-gray-500/30 text-gray-400'}`}>
