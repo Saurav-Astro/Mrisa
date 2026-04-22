@@ -1,4 +1,4 @@
-import { readAdminSession } from "@/lib/auth";
+﻿import { readAdminSession } from "@/lib/auth";
 
 const API_BASE = "/api";
 
@@ -78,6 +78,8 @@ export interface EventRecord {
   }> | null;
   created_at: string;
   updated_at: string;
+  registration_open?: boolean;
+  hide_registration_count?: boolean;
 }
 
 export interface WinnerRecord {
@@ -90,6 +92,8 @@ export interface WinnerRecord {
   team_members: string | null;
   created_at: string;
   updated_at: string;
+  registration_open?: boolean;
+  hide_registration_count?: boolean;
 }
 
 export interface ContactMessageInput {

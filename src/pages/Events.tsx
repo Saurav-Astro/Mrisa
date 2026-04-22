@@ -21,6 +21,7 @@ interface CTFEvent {
   registration_link?: string;
   participation_type?: "solo" | "team";
   registration_open?: boolean;
+  hide_registration_count?: boolean;
 }
 
 const filterOptions: Array<CTFEvent["status"] | "all"> = ["all", "upcoming", "active", "past"];
@@ -110,20 +111,23 @@ const EventCard = ({ event }: { event: CTFEvent }) => {
             <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-yellow-500/70" />
             <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`} target="_blank" rel="noopener noreferrer" className="truncate hover:text-blue-400 transition-colors">{event.location}</a>
           </div>
-          {/* Live registration count */}
-          <div className="flex items-center gap-2 text-xs">
-            <Users className="h-3.5 w-3.5 flex-shrink-0 text-purple-400/70" />
-            {liveCount === null ? (
-              <span className="text-gray-600">Loading...</span>
-            ) : (
-              <span className="text-purple-300 font-semibold">
-                {liveCount}{" "}
-                <span className="text-gray-500 font-normal">
-                  registered {event.participation_type === "team" ? "team" + (liveCount !== 1 ? "s" : "") : "solo"}
+          
+          {/* Live registration count - hidden if admin toggled off */}
+          {!event.hide_registration_count && (
+            <div className="flex items-center gap-2 text-xs">
+              <Users className="h-3.5 w-3.5 flex-shrink-0 text-purple-400/70" />
+              {liveCount === null ? (
+                <span className="text-gray-600">Loading...</span>
+              ) : (
+                <span className="text-purple-300 font-semibold">
+                  {liveCount}{" "}
+                  <span className="text-gray-500 font-normal">
+                    registered {event.participation_type === "team" ? "team" + (liveCount !== 1 ? "s" : "") : "solo"}
+                  </span>
                 </span>
-              </span>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Action button */}
